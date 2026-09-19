@@ -12,9 +12,13 @@ function formatKhmerMonthYear(monthStr) {
   return `ខែ${KHMER_MONTHS[month] || month} ឆ្នាំ${year}`;
 }
 
-// TAB 1 Data
 const initialLedgerData = [
-  { id: 1, date: '2026-08-01', label: 'ថវិកានៅសល់', incUsd: '', incKhr: '20000000', expUsd: '', expKhr: '', isOpening: false }
+  { id: 1, date: '2026-08-01', label: 'ថវិកានៅសល់', incUsd: '469.46', incKhr: '21930400', expUsd: '', expKhr: '', isOpening: true },
+  { id: 1789534000001, date: '2026-08-01', label: 'ទិញជើងកីះបូម', incUsd: '', incKhr: '', expUsd: '', expKhr: '20000', isOpening: false },
+  { id: 1789534000002, date: '2026-08-01', label: 'ចំណាយបាយម្ហូបដល់ក្រុមការងារធ្វើម៉ាស៊ីនហាក់ប្រាណ', incUsd: '', incKhr: '', expUsd: '', expKhr: '110000', isOpening: false },
+  { id: 1789534000003, date: '2026-08-01', label: 'ចំណាយបាយម្ហូបដល់ក្រុមការងារជួយដឹកទូរទស្សន៍', incUsd: '', incKhr: '', expUsd: '', expKhr: '50000', isOpening: false },
+  { id: 1789534000004, date: '2026-08-01', label: 'ប្រាក់ខែបុគ្គលិកក្រុមបាងបរក(ខែកក្កដា)', incUsd: '', incKhr: '', expUsd: '', expKhr: '15080000', isOpening: false },
+  { id: 1789534000005, date: '2026-08-01', label: 'ប្រាក់ខែអ្នកឌីហ្សាញ', incUsd: '', incKhr: '', expUsd: '', expKhr: '2000000', isOpening: false }
 ];
 
 // TAB 2 Data (លុប Vendor ចេញ)
