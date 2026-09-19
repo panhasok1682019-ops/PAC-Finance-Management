@@ -122,6 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Initialize Excel-like Table Context Menu (Right-Click)
+  initTableContextMenu();
+
   // Initialize Supabase in background
   initSupabase();
 
@@ -259,6 +262,66 @@ function handleTableKeyboardNavigation(e) {
     }
     return true;
   };
+
+  // 0. EXCEL SHORTCUTS: INSERT & DELETE ROWS
+  // Insert Below: Ctrl + Shift + = (or Ctrl + Shift + + or Numpad Add)
+  const isInsertBelow = (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === '+' || (e.shiftKey && (e.key === '=' || e.code === 'Equal')) || e.key === 'Add' || e.code === 'NumpadAdd');
+  if (isInsertBelow) {
+    e.preventDefault();
+    if (currentUserRole === 'viewer') {
+      alert('សិទ្ធិថ្នាក់ដឹកនាំ (Viewer) មិនអាចបន្ថែមជួរបានឡើយ។');
+      return;
+    }
+    if (tbody.id === 'ledger-body') {
+      const id = Number(currentTr.id.replace('row-', ''));
+      insertLedgerRowAt(id, 'below', cellIndex);
+    } else if (tbody.id === 'invoice-body') {
+      const id = Number(currentTr.id.replace('inv-row-', ''));
+      insertInvoiceRowAt(id, 'below', cellIndex);
+    }
+    return;
+  }
+
+  // Insert Above: Ctrl + Alt + ArrowUp
+  const isInsertAbove = (e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'ArrowUp' || e.code === 'ArrowUp');
+  if (isInsertAbove) {
+    e.preventDefault();
+    if (currentUserRole === 'viewer') {
+      alert('សិទ្ធិថ្នាក់ដឹកនាំ (Viewer) មិនអាចបន្ថែមជួរបានឡើយ។');
+      return;
+    }
+    if (tbody.id === 'ledger-body') {
+      const id = Number(currentTr.id.replace('row-', ''));
+      insertLedgerRowAt(id, 'above', cellIndex);
+    } else if (tbody.id === 'invoice-body') {
+      const id = Number(currentTr.id.replace('inv-row-', ''));
+      insertInvoiceRowAt(id, 'above', cellIndex);
+    }
+    return;
+  }
+
+  // Delete Row: Ctrl + - (Minus)
+  const isDeleteRow = (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === '-' || e.key === '_' || e.key === 'Subtract' || e.code === 'Minus' || e.code === 'NumpadSubtract');
+  if (isDeleteRow) {
+    e.preventDefault();
+    if (currentUserRole === 'viewer') {
+      alert('សិទ្ធិថ្នាក់ដឹកនាំ (Viewer) មិនអាចលុបជួរបានឡើយ។');
+      return;
+    }
+    if (tbody.id === 'ledger-body') {
+      const id = Number(currentTr.id.replace('row-', ''));
+      const rowItem = ledgerData.find(d => d.id === id);
+      if (rowItem && rowItem.isOpening) {
+        alert('មិនអាចលុបជួរបើកសមតុល្យដើមគ្រាបានទេ!');
+        return;
+      }
+      deleteActiveRowAndRefocus(tbody, currentTr, cellIndex, () => deleteRow(id));
+    } else if (tbody.id === 'invoice-body') {
+      const id = Number(currentTr.id.replace('inv-row-', ''));
+      deleteActiveRowAndRefocus(tbody, currentTr, cellIndex, () => deleteInvoiceRow(id));
+    }
+    return;
+  }
 
   // 1. ENTER / DOWN ARROW (Move to next row)
   if (e.key === 'Enter' || e.key === 'ArrowDown') {
@@ -683,8 +746,13 @@ function renderTable() {
       <td class="border-r border-slate-200 col-exp"><input type="text" value="${formatDisplayAmount(row.expKhr, 'KHR')}" ${disabledAttr} onfocus="onAmountFocus(this, '${row.expKhr ?? ''}')" onblur="onAmountBlur(${row.id}, 'expKhr', this, 'KHR')" oninput="handleAmountInput(${row.id}, 'expKhr', this)" placeholder="-" class="cell-input text-right text-[11.5px] text-rose-600 font-semibold bg-transparent w-full outline-none ${isReadOnly ? 'cursor-default' : ''}" /></td>
       <td class="border-r border-slate-200 bg-slate-50/50 text-right text-[11.5px] text-slate-800 bal-usd font-semibold hide-pdf">$0.00</td>
       <td class="border-r border-slate-200 bg-slate-50/50 text-right text-[11.5px] text-slate-800 bal-khr font-semibold hide-pdf">0៛</td>
-      <td class="text-center action-col">
-        ${isReadOnly ? '<i class="fa-solid fa-eye text-slate-300 text-xs" title="សិទ្ធិមើល"></i>' : (row.isOpening ? '<i class="fa-solid fa-lock text-amber-500 text-xs"></i>' : `<button onclick="deleteRow(${row.id})" class="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer" title="លុបជួរនេះ"><i class="fa-solid fa-trash-can text-sm"></i></button>`)}
+      <td class="text-center action-col whitespace-nowrap px-1">
+        ${isReadOnly ? '<i class="fa-solid fa-eye text-slate-300 text-xs" title="សិទ្ធិមើល"></i>' : `
+          <div class="inline-flex items-center justify-center gap-0.5">
+            <button onclick="insertLedgerRowAt(${row.id}, 'below')" class="text-slate-400 hover:text-sky-600 transition p-1 cursor-pointer" title="បញ្ចូលជួរថ្មីពីក្រោម (Ctrl+Shift+=)"><i class="fa-solid fa-plus text-xs"></i></button>
+            ${row.isOpening ? '<i class="fa-solid fa-lock text-amber-500 text-xs p-1" title="ជួរបើកសមតុល្យដើមគ្រា"></i>' : `<button onclick="deleteRow(${row.id})" class="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer" title="លុបជួរនេះ (Ctrl+-)"><i class="fa-solid fa-trash-can text-xs"></i></button>`}
+          </div>
+        `}
       </td>
     `;
     tbody.appendChild(tr);
@@ -802,8 +870,13 @@ function renderInvoiceTable() {
       </td>
       <td class="border-r border-slate-200 col-inv-usd"><input type="text" value="${formatDisplayAmount(row.amountUsd, 'USD')}" ${disabledAttr} onfocus="onAmountFocus(this, '${row.amountUsd ?? ''}')" onblur="onInvoiceAmountBlur(${row.id}, 'amountUsd', this, 'USD')" oninput="handleInvoiceAmountInput(${row.id}, 'amountUsd', this)" placeholder="-" class="cell-input text-right text-[11.5px] text-rose-600 font-semibold bg-transparent w-full outline-none ${isReadOnly ? 'cursor-default' : ''}" /></td>
       <td class="border-r border-slate-200 col-inv-khr"><input type="text" value="${formatDisplayAmount(row.amountKhr, 'KHR')}" ${disabledAttr} onfocus="onAmountFocus(this, '${row.amountKhr ?? ''}')" onblur="onInvoiceAmountBlur(${row.id}, 'amountKhr', this, 'KHR')" oninput="handleInvoiceAmountInput(${row.id}, 'amountKhr', this)" placeholder="-" class="cell-input text-right text-[11.5px] text-rose-600 font-semibold bg-transparent w-full outline-none ${isReadOnly ? 'cursor-default' : ''}" /></td>
-      <td class="text-center action-col">
-        ${isReadOnly ? '<i class="fa-solid fa-eye text-slate-300 text-xs" title="សិទ្ធិមើល"></i>' : `<button onclick="deleteInvoiceRow(${row.id})" class="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer" title="លុប"><i class="fa-solid fa-trash-can text-sm"></i></button>`}
+      <td class="text-center action-col whitespace-nowrap px-1">
+        ${isReadOnly ? '<i class="fa-solid fa-eye text-slate-300 text-xs" title="សិទ្ធិមើល"></i>' : `
+          <div class="inline-flex items-center justify-center gap-0.5">
+            <button onclick="insertInvoiceRowAt(${row.id}, 'below')" class="text-slate-400 hover:text-sky-600 transition p-1 cursor-pointer" title="បញ្ចូលជួរថ្មីពីក្រោម (Ctrl+Shift+=)"><i class="fa-solid fa-plus text-xs"></i></button>
+            <button onclick="deleteInvoiceRow(${row.id})" class="text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer" title="លុបជួរនេះ (Ctrl+-)"><i class="fa-solid fa-trash-can text-xs"></i></button>
+          </div>
+        `}
       </td>
     `;
     tbody.appendChild(tr);
@@ -937,8 +1010,119 @@ function addInvoiceRow() {
   }
 }
 
+function insertLedgerRowAt(targetId, position = 'below', preferredCellIndex = null) {
+  if (currentUserRole === 'viewer') {
+    alert('សិទ្ធិថ្នាក់ដឹកនាំ (Viewer) សម្រាប់តែពិនិត្យមើលរបាយការណ៍ មិនអាចបន្ថែមជួរបានឡើយ។');
+    return;
+  }
+  const idx = ledgerData.findIndex(d => d.id === targetId);
+  if (idx === -1) {
+    addNewRow();
+    return;
+  }
+
+  const targetRow = ledgerData[idx];
+  // If target is opening balance and trying to insert above, force below to preserve opening balance as top row
+  if (position === 'above' && targetRow.isOpening) {
+    position = 'below';
+  }
+
+  const insertIndex = (position === 'above') ? idx : idx + 1;
+  const newId = Date.now() + Math.floor(Math.random() * 1000);
+  const rowDate = targetRow.date || `${getSelectedMonthStr()}-01`;
+  const newRow = {
+    id: newId,
+    date: rowDate,
+    label: '',
+    incUsd: '',
+    incKhr: '',
+    expUsd: '',
+    expKhr: '',
+    isOpening: false
+  };
+
+  ledgerData.splice(insertIndex, 0, newRow);
+  renderTable();
+
+  setTimeout(() => {
+    const tr = document.getElementById(`row-${newId}`);
+    if (tr) {
+      let targetInput = null;
+      if (preferredCellIndex !== null && tr.children[preferredCellIndex]) {
+        targetInput = tr.children[preferredCellIndex].querySelector('input.cell-input:not([disabled])');
+      }
+      if (!targetInput) {
+        targetInput = tr.querySelector('.col-label input') || tr.querySelector('input.cell-input:not([disabled])');
+      }
+      if (targetInput) {
+        targetInput.focus();
+        if (typeof targetInput.select === 'function') setTimeout(() => targetInput.select(), 15);
+      }
+    }
+  }, 50);
+
+  if (isSupabaseConnected && supabaseClient) {
+    syncLedgerRowToSupabase(newId);
+  }
+}
+
+function insertInvoiceRowAt(targetId, position = 'below', preferredCellIndex = null) {
+  if (currentUserRole === 'viewer') {
+    alert('សិទ្ធិថ្នាក់ដឹកនាំ (Viewer) សម្រាប់តែពិនិត្យមើលរបាយការណ៍ មិនអាចបន្ថែមវិក្កយបត្របានឡើយ។');
+    return;
+  }
+  const idx = invoiceData.findIndex(d => d.id === targetId);
+  if (idx === -1) {
+    addInvoiceRow();
+    return;
+  }
+
+  const targetRow = invoiceData[idx];
+  const insertIndex = (position === 'above') ? idx : idx + 1;
+  const newId = Date.now() + Math.floor(Math.random() * 1000);
+  const rowDate = (targetRow && targetRow.date) ? targetRow.date : `${getSelectedMonthStr()}-01`;
+  const newRow = {
+    id: newId,
+    date: rowDate,
+    invNo: '',
+    label: '',
+    amountUsd: '',
+    amountKhr: '',
+    receiptUrl: ''
+  };
+
+  invoiceData.splice(insertIndex, 0, newRow);
+  renderInvoiceTable();
+
+  setTimeout(() => {
+    const tr = document.getElementById(`inv-row-${newId}`);
+    if (tr) {
+      let targetInput = null;
+      if (preferredCellIndex !== null && tr.children[preferredCellIndex]) {
+        targetInput = tr.children[preferredCellIndex].querySelector('input.cell-input:not([disabled])');
+      }
+      if (!targetInput) {
+        targetInput = tr.querySelector('.col-inv-label input') || tr.querySelector('input.cell-input:not([disabled])');
+      }
+      if (targetInput) {
+        targetInput.focus();
+        if (typeof targetInput.select === 'function') setTimeout(() => targetInput.select(), 15);
+      }
+    }
+  }, 50);
+
+  if (isSupabaseConnected && supabaseClient) {
+    syncInvoiceRowToSupabase(newId);
+  }
+}
+
 function deleteRow(id) {
   if (currentUserRole === 'viewer') return;
+  const targetRow = ledgerData.find(d => d.id === id);
+  if (targetRow && targetRow.isOpening) {
+    alert('មិនអាចលុបជួរបើកសមតុល្យដើមគ្រាបានទេ!');
+    return;
+  }
   ledgerData = ledgerData.filter(d => d.id !== id);
   renderTable();
   if (isSupabaseConnected && supabaseClient) {
@@ -954,6 +1138,158 @@ function deleteInvoiceRow(id) {
     deleteSupabaseRow('pac_invoices', id);
   }
 }
+
+function deleteActiveRowAndRefocus(tbody, currentTr, cellIndex, deleteCallback) {
+  const nextTr = currentTr.nextElementSibling || currentTr.previousElementSibling;
+  const targetId = nextTr ? nextTr.id : null;
+  deleteCallback();
+  if (targetId) {
+    setTimeout(() => {
+      const remainingTr = document.getElementById(targetId);
+      if (remainingTr && remainingTr.children[cellIndex]) {
+        const input = remainingTr.children[cellIndex].querySelector('input.cell-input:not([disabled])');
+        if (input) {
+          input.focus();
+          if (typeof input.select === 'function') setTimeout(() => input.select(), 15);
+        }
+      }
+    }, 40);
+  }
+}
+
+/* ==========================================================================
+   EXCEL-LIKE RIGHT-CLICK CONTEXT MENU
+   ========================================================================== */
+let activeContextMenuTarget = {
+  type: null,
+  id: null,
+  tr: null,
+  cellIndex: 0
+};
+
+function initTableContextMenu() {
+  const menu = document.getElementById('table-context-menu');
+  if (!menu) return;
+
+  const handleContextMenu = (e) => {
+    const targetCell = e.target.closest('td, th');
+    const tr = e.target.closest('tr');
+    if (!tr) return;
+    const tbody = tr.closest('tbody');
+    if (!tbody || (tbody.id !== 'ledger-body' && tbody.id !== 'invoice-body')) return;
+
+    e.preventDefault();
+
+    const isLedger = tbody.id === 'ledger-body';
+    const id = isLedger
+      ? Number(tr.id.replace('row-', ''))
+      : Number(tr.id.replace('inv-row-', ''));
+
+    const cellIndex = targetCell ? Array.from(tr.children).indexOf(targetCell) : 1;
+
+    activeContextMenuTarget = {
+      type: isLedger ? 'ledger' : 'invoice',
+      id: id,
+      tr: tr,
+      cellIndex: cellIndex
+    };
+
+    // Check if is opening balance row
+    const isOpening = isLedger && ledgerData.find(d => d.id === id)?.isOpening;
+    const btnAbove = document.getElementById('ctx-insert-above');
+    const btnDelete = document.getElementById('ctx-delete-row');
+    if (btnAbove) {
+      btnAbove.style.display = isOpening ? 'none' : 'flex';
+    }
+    if (btnDelete) {
+      btnDelete.style.display = isOpening ? 'none' : 'flex';
+    }
+
+    // Position menu within viewport
+    const menuWidth = 240;
+    const menuHeight = 160;
+    let posX = e.clientX;
+    let posY = e.clientY;
+
+    if (posX + menuWidth > window.innerWidth) {
+      posX = Math.max(10, window.innerWidth - menuWidth - 15);
+    }
+    if (posY + menuHeight > window.innerHeight) {
+      posY = Math.max(10, window.innerHeight - menuHeight - 15);
+    }
+
+    menu.style.left = `${posX}px`;
+    menu.style.top = `${posY}px`;
+
+    menu.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      menu.classList.remove('opacity-0', 'scale-95');
+      menu.classList.add('opacity-100', 'scale-100');
+    });
+  };
+
+  document.addEventListener('contextmenu', handleContextMenu);
+
+  // Close on click outside or escape
+  document.addEventListener('click', (e) => {
+    if (menu && !menu.contains(e.target)) {
+      closeTableContextMenu();
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeTableContextMenu();
+    }
+  });
+
+  window.addEventListener('scroll', () => {
+    closeTableContextMenu();
+  }, { passive: true });
+}
+
+function closeTableContextMenu() {
+  const menu = document.getElementById('table-context-menu');
+  if (!menu || menu.classList.contains('hidden')) return;
+  menu.classList.remove('opacity-100', 'scale-100');
+  menu.classList.add('opacity-0', 'scale-95');
+  setTimeout(() => {
+    menu.classList.add('hidden');
+  }, 120);
+}
+
+function executeContextAction(action) {
+  closeTableContextMenu();
+  if (!activeContextMenuTarget || !activeContextMenuTarget.id || !activeContextMenuTarget.type) return;
+
+  const { type, id, cellIndex } = activeContextMenuTarget;
+
+  if (action === 'insert-above') {
+    if (type === 'ledger') insertLedgerRowAt(id, 'above', cellIndex);
+    else insertInvoiceRowAt(id, 'above', cellIndex);
+  } else if (action === 'insert-below') {
+    if (type === 'ledger') insertLedgerRowAt(id, 'below', cellIndex);
+    else insertInvoiceRowAt(id, 'below', cellIndex);
+  } else if (action === 'delete-row') {
+    if (type === 'ledger') {
+      const rowItem = ledgerData.find(d => d.id === id);
+      if (rowItem && rowItem.isOpening) {
+        alert('មិនអាចលុបជួរបើកសមតុល្យដើមគ្រាបានទេ!');
+        return;
+      }
+      deleteRow(id);
+    } else {
+      deleteInvoiceRow(id);
+    }
+  }
+}
+
+window.insertLedgerRowAt = insertLedgerRowAt;
+window.insertInvoiceRowAt = insertInvoiceRowAt;
+window.deleteActiveRowAndRefocus = deleteActiveRowAndRefocus;
+window.initTableContextMenu = initTableContextMenu;
+window.closeTableContextMenu = closeTableContextMenu;
+window.executeContextAction = executeContextAction;
 
 function closeCurrentMonth() {
   if (currentUserRole === 'viewer') return;

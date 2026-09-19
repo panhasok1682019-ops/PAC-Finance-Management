@@ -633,7 +633,7 @@
                   <th colspan="2"
                     class="py-1.5 px-1 text-center w-[20%] border-r border-slate-700 bg-slate-800 border-b border-slate-700 hide-pdf">
                     សមតុល្យ</th>
-                  <th class="py-2 px-1 text-center w-[4%] action-col">សកម្មភាព</th>
+                  <th class="py-2 px-1 text-center w-[56px] min-w-[56px] action-col">សកម្មភាព</th>
                 </tr>
                 <tr class="bg-slate-800 text-slate-200 text-[11px] font-semibold">
                   <th class="border-r border-slate-700"></th>
@@ -731,7 +731,7 @@
                   <th
                     class="py-2 px-1 text-right border-r border-slate-700 w-[11%] bg-rose-950/60 text-rose-300 col-inv-khr">
                     ទឹកប្រាក់ (៛)</th>
-                  <th class="py-2 px-1 text-center w-[4%] action-col">សកម្មភាព</th>
+                  <th class="py-2 px-1 text-center w-[56px] min-w-[56px] action-col">សកម្មភាព</th>
                 </tr>
               </thead>
               <tbody id="invoice-body" class="divide-y divide-slate-200 text-slate-800">
@@ -1474,6 +1474,47 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ==================== EXCEL-LIKE FLOATING CONTEXT MENU (ចុចម៉ៅស្តាំ) ==================== -->
+  <div id="table-context-menu"
+    class="fixed z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200 py-1.5 min-w-[220px] hidden text-xs font-semibold text-slate-800 transition-all duration-150 transform scale-95 opacity-0">
+    <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between">
+      <span>មុខងារជួរ (Row Actions)</span>
+      <span class="text-[9px] bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-bold">Excel Mode</span>
+    </div>
+    <div class="py-1">
+      <button id="ctx-insert-above" onclick="executeContextAction('insert-above')"
+        class="w-full text-left px-3 py-1.5 hover:bg-sky-50 text-slate-700 hover:text-sky-700 flex items-center justify-between transition cursor-pointer">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-arrow-up-to-line text-sky-600 w-4 text-center"></i>
+          <span>បញ្ចូលជួរពីលើ (Insert Above)</span>
+        </span>
+        <span class="text-[10px] text-slate-400 font-mono font-normal">Ctrl+Alt+↑</span>
+      </button>
+
+      <button id="ctx-insert-below" onclick="executeContextAction('insert-below')"
+        class="w-full text-left px-3 py-1.5 hover:bg-sky-50 text-slate-700 hover:text-sky-700 flex items-center justify-between transition cursor-pointer">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-arrow-down-to-line text-sky-600 w-4 text-center"></i>
+          <span>បញ្ចូលជួរពីក្រោម (Insert Below)</span>
+        </span>
+        <span class="text-[10px] text-slate-400 font-mono font-normal">Ctrl+Shift+=</span>
+      </button>
+    </div>
+
+    <div class="border-t border-slate-100 my-1"></div>
+
+    <div class="py-0.5">
+      <button id="ctx-delete-row" onclick="executeContextAction('delete-row')"
+        class="w-full text-left px-3 py-1.5 hover:bg-rose-50 text-rose-600 hover:text-rose-700 flex items-center justify-between transition cursor-pointer">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-trash-can text-rose-500 w-4 text-center"></i>
+          <span>លុបជួរនេះ (Delete Row)</span>
+        </span>
+        <span class="text-[10px] text-rose-400 font-mono font-normal">Ctrl+-</span>
+      </button>
     </div>
   </div>
 
