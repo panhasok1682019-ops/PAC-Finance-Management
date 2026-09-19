@@ -713,6 +713,312 @@ function exportToPDF() {
   });
 }
 
+/* ==========================================================================
+   CONSOLIDATED COMBINED REPORT (SINGLE-FILE PDF EXPORT) & MONTH CLOSING
+   ========================================================================== */
+
+function exportCombinedReportPDF() {
+  const selectedMonth = getSelectedMonthStr();
+  const element = document.getElementById('pdf-combined-report-content');
+  if (!element) return;
+
+  const monthLabelKh = formatKhmerMonthYear(selectedMonth);
+
+  // Subtitle with Khmer month and year
+  const subtitleEl = document.getElementById('combined-pdf-subtitle');
+  if (subtitleEl) subtitleEl.textContent = `ប្រចាំ${monthLabelKh}`;
+
+  // Set signature date (current date in Khmer)
+  const now = new Date();
+  const sigDateEl = document.getElementById('combined-pdf-signature-date');
+  if (sigDateEl) {
+    sigDateEl.textContent = `រាជធានីភ្នំពេញ, ថ្ងៃទី ${String(now.getDate()).padStart(2, '0')} ${monthLabelKh}`;
+  }
+
+  // 1. Populate Section 1: General Ledger Breakdown
+  const ledgerItems = getSelectedMonthData();
+  const ledgerTbody = document.getElementById('combined-ledger-tbody');
+  let totIncUsd = 0, totIncKhr = 0, totExpUsd = 0, totExpKhr = 0;
+
+  if (ledgerTbody) {
+    ledgerTbody.innerHTML = '';
+    if (ledgerItems.length === 0) {
+      ledgerTbody.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-slate-400 text-xs">គ្មានកំណត់ត្រាចំណូល-ចំណាយសម្រាប់ខែនេះទេ</td></tr>';
+    } else {
+      ledgerItems.forEach((row, idx) => {
+        const incU = parseFloat(row.incUsd) || 0;
+        const incK = parseFloat(row.incKhr) || 0;
+        const expU = parseFloat(row.expUsd) || 0;
+        const expK = parseFloat(row.expKhr) || 0;
+        totIncUsd += incU;
+        totIncKhr += incK;
+        totExpUsd += expU;
+        totExpKhr += expK;
+
+        const tr = document.createElement('tr');
+        tr.className = row.isOpening ? 'bg-amber-50/70 font-semibold' : (incU > 0 || incK > 0 ? 'bg-emerald-50/40 font-medium' : '');
+        tr.innerHTML = `
+          <td class="py-1 px-1 text-center text-slate-500 border-r border-slate-200">${idx + 1}</td>
+          <td class="py-1 px-1 text-center text-slate-700 border-r border-slate-200">${row.date || '-'}</td>
+          <td class="py-1 px-2 text-slate-800 border-r border-slate-200 font-medium">${escapeHtml(row.label || '-')}</td>
+          <td class="py-1 px-1 text-right text-emerald-700 font-semibold border-r border-slate-200">${formatDisplayAmount(row.incUsd, 'USD') || '-'}</td>
+          <td class="py-1 px-1 text-right text-emerald-700 font-semibold border-r border-slate-200">${formatDisplayAmount(row.incKhr, 'KHR') || '-'}</td>
+          <td class="py-1 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.expUsd, 'USD') || '-'}</td>
+          <td class="py-1 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.expKhr, 'KHR') || '-'}</td>
+        `;
+        ledgerTbody.appendChild(tr);
+      });
+    }
+    updateElementText('combined-ledger-count', `${ledgerItems.length} កំណត់ត្រា`);
+    updateElementText('combined-foot-inc-usd', '$' + totIncUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+    updateElementText('combined-foot-inc-khr', totIncKhr.toLocaleString('en-US') + '៛');
+    updateElementText('combined-foot-exp-usd', '$' + totExpUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+    updateElementText('combined-foot-exp-khr', totExpKhr.toLocaleString('en-US') + '៛');
+  }
+
+  // 2. Populate Section 2: Leadership Invoices Breakdown
+  const invoiceItems = getSelectedInvoiceData();
+  const invoiceTbody = document.getElementById('combined-invoice-tbody');
+  let totInvUsd = 0, totInvKhr = 0;
+
+  if (invoiceTbody) {
+    invoiceTbody.innerHTML = '';
+    if (invoiceItems.length === 0) {
+      invoiceTbody.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-slate-400 text-xs">គ្មានវិក្កយបត្រចំណាយសម្រាប់ខែនេះទេ</td></tr>';
+    } else {
+      invoiceItems.forEach((row, idx) => {
+        const u = parseFloat(row.amountUsd) || 0;
+        const k = parseFloat(row.amountKhr) || 0;
+        totInvUsd += u;
+        totInvKhr += k;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+          <td class="py-1 px-1 text-center text-slate-500 border-r border-slate-200">${idx + 1}</td>
+          <td class="py-1 px-1 text-center text-slate-700 border-r border-slate-200">${row.date || '-'}</td>
+          <td class="py-1 px-2 text-amber-900 font-bold border-r border-slate-200">${escapeHtml(row.invNo || '-')}</td>
+          <td class="py-1 px-2 text-slate-800 border-r border-slate-200">${escapeHtml(row.label || '-')}</td>
+          <td class="py-1 px-1 text-center border-r border-slate-200 font-semibold text-[10px] ${row.receiptUrl ? 'text-blue-600' : 'text-slate-400'}">${row.receiptUrl ? '✓ មានបង្កាន់ដៃ' : '-'}</td>
+          <td class="py-1 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.amountUsd, 'USD') || '-'}</td>
+          <td class="py-1 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.amountKhr, 'KHR') || '-'}</td>
+        `;
+        invoiceTbody.appendChild(tr);
+      });
+    }
+    updateElementText('combined-invoice-count', `${invoiceItems.length} វិក្កយបត្រ`);
+    updateElementText('combined-foot-inv-usd', '$' + totInvUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+    updateElementText('combined-foot-inv-khr', totInvKhr.toLocaleString('en-US') + '៛');
+  }
+
+  // 3. Populate Section 3: Final Consolidated Grand Summary Table
+  const grandCombinedExpUsd = totExpUsd + totInvUsd;
+  const grandCombinedExpKhr = totExpKhr + totInvKhr;
+  const netEndingBalUsd = totIncUsd - grandCombinedExpUsd;
+  const netEndingBalKhr = totIncKhr - grandCombinedExpKhr;
+
+  updateElementText('summary-final-inc-usd', '$' + totIncUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('summary-final-inc-khr', totIncKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('summary-final-exp-ledger-usd', '$' + totExpUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('summary-final-exp-ledger-khr', totExpKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('summary-final-exp-inv-usd', '$' + totInvUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('summary-final-exp-inv-khr', totInvKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('summary-final-grand-exp-usd', '$' + grandCombinedExpUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('summary-final-grand-exp-khr', grandCombinedExpKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('summary-final-net-usd', '$' + netEndingBalUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('summary-final-net-khr', netEndingBalKhr.toLocaleString('en-US') + '៛');
+
+  // 4. Generate PDF using html2pdf
+  const opt = {
+    margin: [0.15, 0.15, 0.15, 0.15],
+    filename: `PAC_Combined_Financial_Report_${selectedMonth}.pdf`,
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: {
+      scale: 3,
+      useCORS: true,
+      letterRendering: false,
+      scrollX: 0,
+      scrollY: 0
+    },
+    pagebreak: {
+      mode: ['avoid-all', 'css', 'legacy'],
+      avoid: ['tr', 'tfoot']
+    },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+  };
+
+  element.classList.remove('hidden');
+  element.classList.add('pdf-rendering');
+
+  showSaveToast('📄 កំពុងរៀបចំទាញយករបាយការណ៍បូកសរុបរួម (PDF)...');
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    element.classList.remove('pdf-rendering');
+    element.classList.add('hidden');
+    showSaveToast('✓ បានទាញយករបាយការណ៍បូកសរុបរួម (PDF) ដោយជោគជ័យ!');
+  }).catch(err => {
+    element.classList.remove('pdf-rendering');
+    element.classList.add('hidden');
+    console.error('Combined PDF export error:', err);
+    showSaveToast('⚠️ មានបញ្ហាក្នុងការទាញយក PDF៖ ' + err.message);
+  });
+}
+
+function openCloseMonthModal() {
+  const modal = document.getElementById('close-month-modal');
+  if (!modal) return;
+  const selectedMonth = getSelectedMonthStr();
+  const subtitleEl = document.getElementById('close-month-modal-subtitle');
+  if (subtitleEl) {
+    subtitleEl.textContent = 'បិទបញ្ជីហិរញ្ញវត្ថុ ប្រចាំ' + formatKhmerMonthYear(selectedMonth);
+  }
+  updateCloseMonthModalBalances();
+  modal.classList.remove('hidden');
+}
+
+function closeCloseMonthModal() {
+  const modal = document.getElementById('close-month-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function updateCloseMonthModalBalances() {
+  const ledgerItems = getSelectedMonthData();
+  const invoiceItems = getSelectedInvoiceData();
+
+  let incUsd = 0, incKhr = 0, expLedgerUsd = 0, expLedgerKhr = 0;
+  ledgerItems.forEach(r => {
+    incUsd += parseFloat(r.incUsd) || 0;
+    incKhr += parseFloat(r.incKhr) || 0;
+    expLedgerUsd += parseFloat(r.expUsd) || 0;
+    expLedgerKhr += parseFloat(r.expKhr) || 0;
+  });
+
+  let expInvUsd = 0, expInvKhr = 0;
+  invoiceItems.forEach(r => {
+    expInvUsd += parseFloat(r.amountUsd) || 0;
+    expInvKhr += parseFloat(r.amountKhr) || 0;
+  });
+
+  const grandExpUsd = expLedgerUsd + expInvUsd;
+  const grandExpKhr = expLedgerKhr + expInvKhr;
+
+  const deductInv = document.getElementById('close-deduct-invoice-checkbox')?.checked ?? true;
+  const netUsd = deductInv ? (incUsd - grandExpUsd) : (incUsd - expLedgerUsd);
+  const netKhr = deductInv ? (incKhr - grandExpKhr) : (incKhr - expLedgerKhr);
+
+  updateElementText('close-inc-usd', '$' + incUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('close-inc-khr', incKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('close-ledger-rec-count', `${ledgerItems.length} ជួរ`);
+  updateElementText('close-exp-ledger-usd', '$' + expLedgerUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('close-exp-ledger-khr', expLedgerKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('close-inv-rec-count', `${invoiceItems.length} វិក្កយបត្រ`);
+  updateElementText('close-exp-inv-usd', '$' + expInvUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('close-exp-inv-khr', expInvKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('close-grand-exp-usd', '$' + grandExpUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('close-grand-exp-khr', grandExpKhr.toLocaleString('en-US') + '៛');
+
+  updateElementText('close-net-usd', '$' + netUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+  updateElementText('close-net-khr', netKhr.toLocaleString('en-US') + '៛');
+}
+
+async function confirmExecuteCloseMonth() {
+  const selectedMonth = getSelectedMonthStr();
+  const nextMonthStr = getNextMonthStr(selectedMonth);
+  const monthLabelKh = formatKhmerMonthYear(selectedMonth);
+  const nextMonthLabelKh = formatKhmerMonthYear(nextMonthStr);
+
+  const confirmMsg = `តើអ្នកពិតជាចង់បិទបញ្ជីសម្រាប់ ${monthLabelKh} និងផ្ទេរសមតុល្យសាច់ប្រាក់ដែលនៅសល់ទៅ ${nextMonthLabelKh} មែនទេ?`;
+  if (!confirm(confirmMsg)) return;
+
+  const ledgerItems = getSelectedMonthData();
+  const invoiceItems = getSelectedInvoiceData();
+
+  let incUsd = 0, incKhr = 0, expLedgerUsd = 0, expLedgerKhr = 0;
+  ledgerItems.forEach(r => {
+    incUsd += parseFloat(r.incUsd) || 0;
+    incKhr += parseFloat(r.incKhr) || 0;
+    expLedgerUsd += parseFloat(r.expUsd) || 0;
+    expLedgerKhr += parseFloat(r.expKhr) || 0;
+  });
+
+  let expInvUsd = 0, expInvKhr = 0;
+  invoiceItems.forEach(r => {
+    expInvUsd += parseFloat(r.amountUsd) || 0;
+    expInvKhr += parseFloat(r.amountKhr) || 0;
+  });
+
+  const deductInv = document.getElementById('close-deduct-invoice-checkbox')?.checked ?? true;
+  const netUsd = deductInv ? (incUsd - (expLedgerUsd + expInvUsd)) : (incUsd - expLedgerUsd);
+  const netKhr = deductInv ? (incKhr - (expLedgerKhr + expInvKhr)) : (incKhr - expLedgerKhr);
+
+  const openingLabel = `ថវិកានៅសល់ពី${monthLabelKh}`;
+  const existingIdx = ledgerData.findIndex(d => d.date && d.date.startsWith(nextMonthStr) && d.isOpening === true);
+
+  let targetRow;
+  if (existingIdx !== -1) {
+    ledgerData[existingIdx].label = openingLabel;
+    ledgerData[existingIdx].incUsd = netUsd > 0 ? String(netUsd) : '';
+    ledgerData[existingIdx].incKhr = netKhr > 0 ? String(netKhr) : '';
+    targetRow = ledgerData[existingIdx];
+  } else {
+    const newId = ledgerData.length ? Math.max(...ledgerData.map(d => d.id)) + 1 : 1;
+    targetRow = {
+      id: newId,
+      date: `${nextMonthStr}-01`,
+      label: openingLabel,
+      incUsd: netUsd > 0 ? String(netUsd) : '',
+      incKhr: netKhr > 0 ? String(netKhr) : '',
+      expUsd: '',
+      expKhr: '',
+      isOpening: true
+    };
+    ledgerData.unshift(targetRow);
+  }
+
+  // Save local
+  localStorage.setItem('pac_ledger_data', JSON.stringify(ledgerData));
+
+  // Sync to Supabase if connected
+  if (isSupabaseConnected && supabaseClient && targetRow) {
+    try {
+      await supabaseClient.from('pac_ledger').upsert([mapLedgerToSupabase(targetRow)]);
+    } catch (err) {
+      console.warn('Sync close month error:', err);
+    }
+  }
+
+  closeCloseMonthModal();
+
+  // Switch to the next month in the dropdown
+  const [nextYear, nextMonth] = nextMonthStr.split('-');
+  const mSelect = document.getElementById('month-select');
+  const ySelect = document.getElementById('year-select');
+  if (mSelect) mSelect.value = nextMonth;
+  if (ySelect) ySelect.value = nextYear;
+
+  renderTable();
+  renderInvoiceTable();
+  recalculateBalances();
+  recalculateInvoiceTotals();
+
+  showSaveToast(`✓ បានបិទបញ្ជី ${monthLabelKh} និងផ្ទេរសមតុល្យសាច់ប្រាក់ទៅ ${nextMonthLabelKh} ដោយជោគជ័យ!`);
+}
+
+function getNextMonthStr(currentMonthStr) {
+  if (!currentMonthStr) return '';
+  const [year, month] = currentMonthStr.split('-').map(Number);
+  const date = new Date(year, month - 1, 1);
+  date.setMonth(date.getMonth() + 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
 /* ==========================================================================

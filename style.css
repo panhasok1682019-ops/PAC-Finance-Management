@@ -163,7 +163,8 @@ table tbody td {
 }
 
 #pdf-report-title,
-#pdf-invoice-report-content h2 {
+#pdf-invoice-report-content h2,
+#pdf-combined-report-content h2 {
   font-family: 'Kantumruy Pro', sans-serif !important;
   font-weight: 700 !important;
   color: #0f172a !important;

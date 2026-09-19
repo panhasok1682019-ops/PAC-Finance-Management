@@ -283,6 +283,14 @@
               <span>Export PDF</span>
             </button>
 
+            <!-- Button Export Combined Report (Single File) -->
+            <button id="btn-export-combined-pdf" onclick="exportCombinedReportPDF()"
+              class="px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              title="Export របាយការណ៍បូកសរុបរួមទាំងពីរក្នុង File តែមួយ">
+              <i class="fa-solid fa-file-circle-check text-xs"></i>
+              <span class="hidden sm:inline">របាយការណ៍រួម (PDF)</span>
+            </button>
+
             <!-- Supabase Connection Indicator & Settings Button -->
             <button id="btn-supabase-modal" onclick="openSupabaseModal()"
               class="editor-only px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
@@ -743,6 +751,191 @@
         </div>
       </section>
 
+      <!-- ==================== CONSOLIDATED COMBINED REPORT CONTAINER (SINGLE-FILE PDF) ==================== -->
+      <section id="pdf-combined-report-content" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+
+        <!-- Header ផ្លូវការ -->
+        <div class="px-2 pt-2 pb-1">
+          <div class="flex justify-between items-start">
+            <div class="text-center pt-3 leading-relaxed">
+              <p class="text-[14px] font-bold text-slate-900 font-moul">បណ្ឌិត្យសភានគរបាលកម្ពុជា</p>
+              <p class="text-[11px] text-slate-700 tracking-widest mt-0.5">※ • ※ • ※</p>
+            </div>
+            <div class="text-center leading-relaxed">
+              <p class="text-[14.5px] font-bold text-slate-900 font-moul">ព្រះរាជាណាចក្រកម្ពុជា</p>
+              <p class="text-[13.5px] font-bold text-slate-800 font-moul mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+              <p class="text-[11px] text-slate-700 tracking-widest mt-0.5">~ ❖ ~</p>
+            </div>
+          </div>
+
+          <div class="text-center mt-3 mb-2">
+            <h2 class="text-[16.5px] font-bold text-slate-950 leading-normal">
+              របាយការណ៍បូកសរុបរួមចំណូល-ចំណាយ និងវិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ
+            </h2>
+            <p id="combined-pdf-subtitle" class="text-xs text-slate-700 font-semibold mt-0.5">ប្រចាំខែ...</p>
+          </div>
+        </div>
+
+        <!-- ផ្នែកទី ១៖ តារាងរាយមុខសញ្ញាចំណូល-ចំណាយទូទៅ -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between border-b-2 border-slate-800 pb-1">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">១</span>
+              <span>ផ្នែកទី ១៖ បញ្ជីចំណូល-ចំណាយទូទៅ (General Ledger)</span>
+            </h3>
+            <span id="combined-ledger-count" class="text-[11px] font-semibold text-slate-600">0 កំណត់ត្រា</span>
+          </div>
+
+          <table class="w-full text-left border-collapse table-fixed text-[11px]">
+            <thead>
+              <tr class="bg-slate-900 text-white text-[11px] font-bold">
+                <th class="py-1.5 px-1 text-center w-[5%] border-r border-slate-700">ល.រ</th>
+                <th class="py-1.5 px-1 text-center w-[12%] border-r border-slate-700">កាលបរិច្ឆេទ</th>
+                <th class="py-1.5 px-2 text-left w-[35%] border-r border-slate-700">បរិយាយមុខសញ្ញាចំណូល-ចំណាយ</th>
+                <th colspan="2" class="py-1 px-1 text-center w-[24%] border-r border-slate-700 bg-emerald-950/60 border-b border-slate-700">ចំនួនទឹកប្រាក់ចូល</th>
+                <th colspan="2" class="py-1 px-1 text-center w-[24%] border-r border-slate-700 bg-rose-950/60 border-b border-slate-700">ចំនួនទឹកប្រាក់ចេញ</th>
+              </tr>
+              <tr class="bg-slate-800 text-slate-200 text-[10px] font-semibold">
+                <th class="border-r border-slate-700"></th>
+                <th class="border-r border-slate-700"></th>
+                <th class="border-r border-slate-700"></th>
+                <th class="py-0.5 px-1 text-right border-r border-slate-700 w-[11.5%] text-emerald-300">ដុល្លារ ($)</th>
+                <th class="py-0.5 px-1 text-right border-r border-slate-700 w-[12.5%] text-emerald-300">រៀល (៛)</th>
+                <th class="py-0.5 px-1 text-right border-r border-slate-700 w-[11.5%] text-rose-300">ដុល្លារ ($)</th>
+                <th class="py-0.5 px-1 text-right border-r border-slate-700 w-[12.5%] text-rose-300">រៀល (៛)</th>
+              </tr>
+            </thead>
+            <tbody id="combined-ledger-tbody" class="divide-y divide-slate-200 text-slate-800">
+              <!-- Dynamically populated -->
+            </tbody>
+            <tfoot class="bg-slate-100 border-t-2 border-slate-400 font-bold text-[11px]">
+              <tr>
+                <td colspan="3" class="py-1.5 px-3 text-right text-slate-800 border-r border-slate-300">សរុបផ្នែកទី ១៖</td>
+                <td id="combined-foot-inc-usd" class="py-1.5 px-1 text-right text-emerald-700 border-r border-slate-300">$0.00</td>
+                <td id="combined-foot-inc-khr" class="py-1.5 px-1 text-right text-emerald-700 border-r border-slate-300">0៛</td>
+                <td id="combined-foot-exp-usd" class="py-1.5 px-1 text-right text-rose-700 border-r border-slate-300">$0.00</td>
+                <td id="combined-foot-exp-khr" class="py-1.5 px-1 text-right text-rose-700 border-r border-slate-300">0៛</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ផ្នែកទី ២៖ តារាងរាយមុខសញ្ញាវិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ -->
+        <div class="space-y-1.5 pt-2">
+          <div class="flex items-center justify-between border-b-2 border-slate-800 pb-1">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">២</span>
+              <span>ផ្នែកទី ២៖ បញ្ជីវិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ (Executive Invoices)</span>
+            </h3>
+            <span id="combined-invoice-count" class="text-[11px] font-semibold text-slate-600">0 វិក្កយបត្រ</span>
+          </div>
+
+          <table class="w-full text-left border-collapse table-fixed text-[11px]">
+            <thead>
+              <tr class="bg-slate-900 text-white text-[11px] font-bold">
+                <th class="py-1.5 px-1 text-center w-[5%] border-r border-slate-700">ល.រ</th>
+                <th class="py-1.5 px-1 text-center w-[12%] border-r border-slate-700">កាលបរិច្ឆេទ</th>
+                <th class="py-1.5 px-2 text-left w-[20%] border-r border-slate-700">លេខវិក្កយបត្រ</th>
+                <th class="py-1.5 px-2 text-left w-[35%] border-r border-slate-700">បរិយាយមុខសញ្ញាចំណាយវិក្កយបត្រ</th>
+                <th class="py-1.5 px-1 text-center w-[8%] border-r border-slate-700">បង្កាន់ដៃ</th>
+                <th class="py-1.5 px-1 text-right w-[10%] border-r border-slate-700 bg-rose-950/60 text-rose-300">ទឹកប្រាក់ ($)</th>
+                <th class="py-1.5 px-1 text-right w-[10%] border-r border-slate-700 bg-rose-950/60 text-rose-300">ទឹកប្រាក់ (៛)</th>
+              </tr>
+            </thead>
+            <tbody id="combined-invoice-tbody" class="divide-y divide-slate-200 text-slate-800">
+              <!-- Dynamically populated -->
+            </tbody>
+            <tfoot class="bg-slate-100 border-t-2 border-slate-400 font-bold text-[11px]">
+              <tr>
+                <td colspan="5" class="py-1.5 px-3 text-right text-slate-800 border-r border-slate-300">សរុបវិក្កយបត្រផ្នែកទី ២៖</td>
+                <td id="combined-foot-inv-usd" class="py-1.5 px-1 text-right text-rose-700 border-r border-slate-300">$0.00</td>
+                <td id="combined-foot-inv-khr" class="py-1.5 px-1 text-right text-rose-700 border-r border-slate-300">0៛</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ផ្នែកទី ៣៖ តារាងបូកសរុបរួមចុងក្រោយ (CONSOLIDATED FINAL SUMMARY TABLE) -->
+        <div class="space-y-1.5 pt-2">
+          <div class="flex items-center justify-between border-b-2 border-slate-800 pb-1">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold">៣</span>
+              <span>ផ្នែកទី ៣៖ ការបូកសរុបរួមចុងក្រោយ (Grand Consolidated Financial Summary)</span>
+            </h3>
+            <span class="text-[10px] bg-blue-100 text-blue-900 px-2 py-0.5 rounded font-bold">បូកសរុបបញ្ចូលគ្នា</span>
+          </div>
+
+          <table class="w-full text-left border-collapse table-fixed text-[11px]">
+            <thead>
+              <tr class="bg-slate-900 text-white font-bold">
+                <th class="py-1.5 px-2 text-center w-[8%] border-r border-slate-700">ល.រ</th>
+                <th class="py-1.5 px-3 text-left w-[52%] border-r border-slate-700">មុខសញ្ញាហិរញ្ញវត្ថុសរុប</th>
+                <th class="py-1.5 px-2 text-right w-[20%] border-r border-slate-700">ចំនួនទឹកប្រាក់ ($)</th>
+                <th class="py-1.5 px-2 text-right w-[20%]">ចំនួនទឹកប្រាក់ (៛)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 font-medium">
+              <tr class="bg-emerald-50/60">
+                <td class="py-1.5 px-2 text-center text-emerald-800 font-bold border-r border-slate-300">១</td>
+                <td class="py-1.5 px-3 text-slate-900 font-bold border-r border-slate-300">ចំណូលសរុបប្រចាំខែ (Total Income)</td>
+                <td id="summary-final-inc-usd" class="py-1.5 px-2 text-right font-bold text-emerald-700 border-r border-slate-300">$0.00</td>
+                <td id="summary-final-inc-khr" class="py-1.5 px-2 text-right font-bold text-emerald-700">0៛</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 px-2 text-center text-slate-600 border-r border-slate-300">២</td>
+                <td class="py-1.5 px-3 text-slate-800 border-r border-slate-300">ចំណាយបញ្ជីចំណូល-ចំណាយទូទៅ (១. General Ledger Expenses)</td>
+                <td id="summary-final-exp-ledger-usd" class="py-1.5 px-2 text-right text-rose-600 font-semibold border-r border-slate-300">$0.00</td>
+                <td id="summary-final-exp-ledger-khr" class="py-1.5 px-2 text-right text-rose-600 font-semibold">0៛</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 px-2 text-center text-slate-600 border-r border-slate-300">៣</td>
+                <td class="py-1.5 px-3 text-slate-800 border-r border-slate-300">ចំណាយវិក្កយបត្រថ្នាក់ដឹកនាំ (២. Leadership Invoices)</td>
+                <td id="summary-final-exp-inv-usd" class="py-1.5 px-2 text-right text-amber-700 font-semibold border-r border-slate-300">$0.00</td>
+                <td id="summary-final-exp-inv-khr" class="py-1.5 px-2 text-right text-amber-700 font-semibold">0៛</td>
+              </tr>
+              <tr class="bg-rose-50/80 border-t-2 border-slate-400 font-bold">
+                <td class="py-2 px-2 text-center text-rose-800 font-extrabold border-r border-slate-300">៤</td>
+                <td class="py-2 px-3 text-rose-900 font-extrabold border-r border-slate-300">
+                  <span>ចំណាយសរុបរួមទាំង ២ មុខសញ្ញា (Grand Total Combined Expenses)</span>
+                </td>
+                <td id="summary-final-grand-exp-usd" class="py-2 px-2 text-right font-extrabold text-rose-700 text-xs border-r border-slate-300">$0.00</td>
+                <td id="summary-final-grand-exp-khr" class="py-2 px-2 text-right font-extrabold text-rose-700 text-xs">0៛</td>
+              </tr>
+              <tr class="bg-blue-100/80 border-t-2 border-slate-400 font-bold">
+                <td class="py-2 px-2 text-center text-blue-900 font-extrabold border-r border-slate-300">៥</td>
+                <td class="py-2 px-3 text-blue-950 font-extrabold border-r border-slate-300">
+                  <span>សមតុល្យសាច់ប្រាក់នៅសល់ចុងក្រោយ (Net Balance to Rollover)</span>
+                </td>
+                <td id="summary-final-net-usd" class="py-2 px-2 text-right font-extrabold text-blue-800 text-xs border-r border-slate-300">$0.00</td>
+                <td id="summary-final-net-khr" class="py-2 px-2 text-right font-extrabold text-blue-800 text-xs">0៛</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ផ្នែកហត្ថលេខាផ្លូវការ -->
+        <div class="pt-4 pb-2">
+          <div class="flex justify-end text-xs text-slate-800 mb-3 font-medium">
+            <p id="combined-pdf-signature-date">រាជធានីភ្នំពេញ, ថ្ងៃទី... ខែ... ឆ្នាំ...</p>
+          </div>
+          <div class="grid grid-cols-3 gap-4 text-center text-xs text-slate-800">
+            <div class="space-y-10">
+              <p class="font-bold">រៀបចំដោយ (អ្នកកត់ត្រា)</p>
+              <p class="font-semibold text-slate-600">(..........................................)</p>
+            </div>
+            <div class="space-y-10">
+              <p class="font-bold">បានពិនិត្យត្រឹមត្រូវ (ប្រធានការិយាល័យ)</p>
+              <p class="font-semibold text-slate-600">(..........................................)</p>
+            </div>
+            <div class="space-y-10">
+              <p class="font-bold">បានឃើញ និងឯកភាព (ថ្នាក់ដឹកនាំ)</p>
+              <p class="font-semibold text-slate-600">(..........................................)</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
     </main>
 
   </div> <!-- ==================== END #app-container ==================== -->
@@ -863,14 +1056,40 @@
           <span>កាត់កងការចំណាយវិក្កយបត្រថ្នាក់ដឹកនាំ ពីសមតុល្យសាច់ប្រាក់ផ្ទេរទៅខែបន្ទាប់</span>
         </label>
 
+        <!-- Combined PDF Quick Export Banner in Modal -->
+        <div class="p-3 rounded-2xl bg-indigo-50/80 border border-indigo-200 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm shrink-0">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-indigo-950">របាយការណ៍បូកសរុបរួមទាំង ២ បញ្ជី (File តែមួយ)</p>
+              <p class="text-[11px] text-indigo-700">រាយមុខសញ្ញាចំណាយទូទៅ និងវិក្កយបត្រ ព្រមទាំងបូកសរុបចុងក្រោយ</p>
+            </div>
+          </div>
+          <button type="button" onclick="exportCombinedReportPDF()"
+            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0 cursor-pointer">
+            <i class="fa-solid fa-download text-xs"></i>
+            <span>ទាញយក PDF</span>
+          </button>
+        </div>
+
       </div>
 
       <!-- Modal Footer -->
-      <div class="bg-slate-50 px-5 sm:px-6 py-3 border-t border-slate-200 flex items-center justify-between gap-2">
-        <button type="button" onclick="closeCloseMonthModal()"
-          class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer">
-          បោះបង់
-        </button>
+      <div class="bg-slate-50 px-5 sm:px-6 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeCloseMonthModal()"
+            class="px-3.5 sm:px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer">
+            បោះបង់
+          </button>
+          <button type="button" onclick="exportCombinedReportPDF()"
+            class="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+            title="ទាញយករបាយការណ៍បូកសរុបរួមទាំងពីរក្នុង File តែមួយ">
+            <i class="fa-solid fa-file-pdf text-xs"></i>
+            <span>Export របាយការណ៍រួម (PDF)</span>
+          </button>
+        </div>
         <button type="button" onclick="confirmExecuteCloseMonth()"
           class="px-4 sm:px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer active:scale-95">
           <i class="fa-solid fa-lock text-xs"></i>
