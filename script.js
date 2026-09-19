@@ -811,14 +811,9 @@ function exportCombinedReportPDF() {
     updateElementText('combined-foot-inv-khr', totInvKhr.toLocaleString('en-US') + '៛');
   }
 
-  // 3. Populate Section 3: Final Consolidated Grand Summary Table
+  // 3. Populate Section 3: Final Consolidated Expenses Summary Table (Only 3 expense items)
   const grandCombinedExpUsd = totExpUsd + totInvUsd;
   const grandCombinedExpKhr = totExpKhr + totInvKhr;
-  const netEndingBalUsd = totIncUsd - grandCombinedExpUsd;
-  const netEndingBalKhr = totIncKhr - grandCombinedExpKhr;
-
-  updateElementText('summary-final-inc-usd', '$' + totIncUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
-  updateElementText('summary-final-inc-khr', totIncKhr.toLocaleString('en-US') + '៛');
 
   updateElementText('summary-final-exp-ledger-usd', '$' + totExpUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
   updateElementText('summary-final-exp-ledger-khr', totExpKhr.toLocaleString('en-US') + '៛');
@@ -828,9 +823,6 @@ function exportCombinedReportPDF() {
 
   updateElementText('summary-final-grand-exp-usd', '$' + grandCombinedExpUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
   updateElementText('summary-final-grand-exp-khr', grandCombinedExpKhr.toLocaleString('en-US') + '៛');
-
-  updateElementText('summary-final-net-usd', '$' + netEndingBalUsd.toLocaleString('en-US', { minimumFractionDigits: 2 }));
-  updateElementText('summary-final-net-khr', netEndingBalKhr.toLocaleString('en-US') + '៛');
 
   // 4. Generate PDF using html2pdf
   const opt = {
