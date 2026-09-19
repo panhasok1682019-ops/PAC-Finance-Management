@@ -778,43 +778,43 @@
 
         <!-- ផ្នែកទី ១៖ តារាងរាយមុខសញ្ញាចំណូល-ចំណាយទូទៅ -->
         <div class="space-y-1.5">
-          <div class="flex items-center justify-between border-b-2 border-blue-600 pb-1">
-            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">១</span>
+          <div class="flex items-center justify-between border-b-2 border-sky-400 pb-1">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <span class="section-number-badge bg-sky-500 text-white shadow-sm">១</span>
               <span>ផ្នែកទី ១៖ បញ្ជីចំណូល-ចំណាយទូទៅ (General Ledger)</span>
             </h3>
-            <span id="combined-ledger-count" class="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">0 កំណត់ត្រា</span>
+            <span id="combined-ledger-count" class="text-[11px] font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">0 កំណត់ត្រា</span>
           </div>
 
           <table class="w-full text-left border-collapse table-fixed text-[11px]">
             <thead>
-              <tr class="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white text-[11px] font-bold shadow-sm">
-                <th class="py-1.5 px-1 text-center w-[5%] border-r border-blue-400/40">ល.រ</th>
-                <th class="py-1.5 px-1 text-center w-[12%] border-r border-blue-400/40">កាលបរិច្ឆេទ</th>
-                <th class="py-1.5 px-2 text-left w-[35%] border-r border-blue-400/40">បរិយាយមុខសញ្ញាចំណូល-ចំណាយ</th>
-                <th colspan="2" class="py-1 px-1 text-center w-[24%] border-r border-blue-400/40 bg-emerald-600 border-b border-emerald-500">ចំនួនទឹកប្រាក់ចូល</th>
-                <th colspan="2" class="py-1 px-1 text-center w-[24%] border-r border-blue-400/40 bg-rose-600 border-b border-rose-500">ចំនួនទឹកប្រាក់ចេញ</th>
+              <tr class="bg-sky-500 text-white text-[11px] font-bold shadow-sm">
+                <th class="py-2 px-1 text-center w-[5%] border-r border-sky-400">ល.រ</th>
+                <th class="py-2 px-1 text-center w-[12%] border-r border-sky-400">កាលបរិច្ឆេទ</th>
+                <th class="py-2 px-2 text-left w-[35%] border-r border-sky-400">បរិយាយមុខសញ្ញាចំណូល-ចំណាយ</th>
+                <th colspan="2" class="py-2 px-1 text-center w-[24%] border-r border-sky-400 border-b border-sky-400/60">ចំនួនទឹកប្រាក់ចូល</th>
+                <th colspan="2" class="py-2 px-1 text-center w-[24%] border-b border-sky-400/60">ចំនួនទឹកប្រាក់ចេញ</th>
               </tr>
-              <tr class="bg-blue-50 text-slate-800 text-[10px] font-bold border-b border-blue-200">
-                <th class="border-r border-blue-200"></th>
-                <th class="border-r border-blue-200"></th>
-                <th class="border-r border-blue-200"></th>
-                <th class="py-1 px-1 text-right border-r border-blue-200 w-[11.5%] text-emerald-700">ដុល្លារ ($)</th>
-                <th class="py-1 px-1 text-right border-r border-blue-200 w-[12.5%] text-emerald-700">រៀល (៛)</th>
-                <th class="py-1 px-1 text-right border-r border-blue-200 w-[11.5%] text-rose-700">ដុល្លារ ($)</th>
-                <th class="py-1 px-1 text-right border-r border-blue-200 w-[12.5%] text-rose-700">រៀល (៛)</th>
+              <tr class="bg-sky-50 text-slate-800 text-[10px] font-bold border-b border-sky-200">
+                <th class="border-r border-sky-200"></th>
+                <th class="border-r border-sky-200"></th>
+                <th class="border-r border-sky-200"></th>
+                <th class="py-1 px-1 text-right border-r border-sky-200 w-[11.5%] text-emerald-700">ដុល្លារ ($)</th>
+                <th class="py-1 px-1 text-right border-r border-sky-200 w-[12.5%] text-emerald-700">រៀល (៛)</th>
+                <th class="py-1 px-1 text-right border-r border-sky-200 w-[11.5%] text-rose-700">ដុល្លារ ($)</th>
+                <th class="py-1 px-1 text-right border-r border-sky-200 w-[12.5%] text-rose-700">រៀល (៛)</th>
               </tr>
             </thead>
             <tbody id="combined-ledger-tbody" class="divide-y divide-slate-200 text-slate-800">
               <!-- Dynamically populated -->
             </tbody>
-            <tfoot class="bg-blue-50/70 border-t-2 border-blue-300 font-bold text-[11px]">
+            <tfoot class="bg-sky-50/70 border-t-2 border-sky-300 font-bold text-[11px]">
               <tr>
-                <td colspan="3" class="py-1.5 px-3 text-right text-slate-800 border-r border-blue-200">សរុបផ្នែកទី ១៖</td>
-                <td id="combined-foot-inc-usd" class="py-1.5 px-1 text-right text-emerald-700 border-r border-blue-200">$0.00</td>
-                <td id="combined-foot-inc-khr" class="py-1.5 px-1 text-right text-emerald-700 border-r border-blue-200">0៛</td>
-                <td id="combined-foot-exp-usd" class="py-1.5 px-1 text-right text-rose-700 border-r border-blue-200">$0.00</td>
-                <td id="combined-foot-exp-khr" class="py-1.5 px-1 text-right text-rose-700 border-r border-blue-200">0៛</td>
+                <td colspan="3" class="py-1.5 px-3 text-right text-slate-800 border-r border-sky-200">សរុបផ្នែកទី ១៖</td>
+                <td id="combined-foot-inc-usd" class="py-1.5 px-1 text-right text-emerald-700 border-r border-sky-200">$0.00</td>
+                <td id="combined-foot-inc-khr" class="py-1.5 px-1 text-right text-emerald-700 border-r border-sky-200">0៛</td>
+                <td id="combined-foot-exp-usd" class="py-1.5 px-1 text-right text-rose-700 border-r border-sky-200">$0.00</td>
+                <td id="combined-foot-exp-khr" class="py-1.5 px-1 text-right text-rose-700 border-r border-sky-200">0៛</td>
               </tr>
             </tfoot>
           </table>
@@ -822,34 +822,34 @@
 
         <!-- ផ្នែកទី ២៖ តារាងរាយមុខសញ្ញាវិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ -->
         <div class="space-y-1.5 pt-2">
-          <div class="flex items-center justify-between border-b-2 border-amber-500 pb-1">
-            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">២</span>
+          <div class="flex items-center justify-between border-b-2 border-sky-400 pb-1">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <span class="section-number-badge bg-sky-500 text-white shadow-sm">២</span>
               <span>ផ្នែកទី ២៖ បញ្ជីវិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ (Executive Invoices)</span>
             </h3>
-            <span id="combined-invoice-count" class="text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">0 វិក្កយបត្រ</span>
+            <span id="combined-invoice-count" class="text-[11px] font-semibold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">0 វិក្កយបត្រ</span>
           </div>
 
           <table class="w-full text-left border-collapse table-fixed text-[11px]">
             <thead>
-              <tr class="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 text-white text-[11px] font-bold shadow-sm">
-                <th class="py-1.5 px-1 text-center w-[5%] border-r border-amber-400/40">ល.រ</th>
-                <th class="py-1.5 px-1 text-center w-[12%] border-r border-amber-400/40">កាលបរិច្ឆេទ</th>
-                <th class="py-1.5 px-2 text-left w-[20%] border-r border-amber-400/40">លេខវិក្កយបត្រ</th>
-                <th class="py-1.5 px-2 text-left w-[35%] border-r border-amber-400/40">បរិយាយមុខសញ្ញាចំណាយវិក្កយបត្រ</th>
-                <th class="py-1.5 px-1 text-center w-[8%] border-r border-amber-400/40">បង្កាន់ដៃ</th>
-                <th class="py-1.5 px-1 text-right w-[10%] border-r border-amber-400/40 bg-rose-600 text-white">ទឹកប្រាក់ ($)</th>
-                <th class="py-1.5 px-1 text-right w-[10%] border-r border-amber-400/40 bg-rose-600 text-white">ទឹកប្រាក់ (៛)</th>
+              <tr class="bg-sky-500 text-white text-[11px] font-bold shadow-sm">
+                <th class="py-2 px-1 text-center w-[5%] border-r border-sky-400">ល.រ</th>
+                <th class="py-2 px-1 text-center w-[12%] border-r border-sky-400">កាលបរិច្ឆេទ</th>
+                <th class="py-2 px-2 text-left w-[20%] border-r border-sky-400">លេខវិក្កយបត្រ</th>
+                <th class="py-2 px-2 text-left w-[35%] border-r border-sky-400">បរិយាយមុខសញ្ញាចំណាយវិក្កយបត្រ</th>
+                <th class="py-2 px-1 text-center w-[8%] border-r border-sky-400">បង្កាន់ដៃ</th>
+                <th class="py-2 px-1 text-right w-[10%] border-r border-sky-400">ទឹកប្រាក់ ($)</th>
+                <th class="py-2 px-1 text-right w-[10%]">ទឹកប្រាក់ (៛)</th>
               </tr>
             </thead>
             <tbody id="combined-invoice-tbody" class="divide-y divide-slate-200 text-slate-800">
               <!-- Dynamically populated -->
             </tbody>
-            <tfoot class="bg-amber-50/70 border-t-2 border-amber-300 font-bold text-[11px]">
+            <tfoot class="bg-sky-50/70 border-t-2 border-sky-300 font-bold text-[11px]">
               <tr>
-                <td colspan="5" class="py-1.5 px-3 text-right text-slate-800 border-r border-amber-200">សរុបវិក្កយបត្រផ្នែកទី ២៖</td>
-                <td id="combined-foot-inv-usd" class="py-1.5 px-1 text-right text-rose-700 border-r border-amber-200">$0.00</td>
-                <td id="combined-foot-inv-khr" class="py-1.5 px-1 text-right text-rose-700 border-r border-amber-200">0៛</td>
+                <td colspan="5" class="py-1.5 px-3 text-right text-slate-800 border-r border-sky-200">សរុបវិក្កយបត្រផ្នែកទី ២៖</td>
+                <td id="combined-foot-inv-usd" class="py-1.5 px-1 text-right text-rose-700 border-r border-sky-200">$0.00</td>
+                <td id="combined-foot-inv-khr" class="py-1.5 px-1 text-right text-rose-700 border-r border-sky-200">0៛</td>
               </tr>
             </tfoot>
           </table>
@@ -857,42 +857,42 @@
 
         <!-- ផ្នែកទី ៣៖ តារាងបូកសរុបរួមចុងក្រោយ (CONSOLIDATED FINAL SUMMARY TABLE) -->
         <div class="space-y-1.5 pt-2">
-          <div class="flex items-center justify-between border-b-2 border-indigo-600 pb-1">
-            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold shadow-sm">៣</span>
+          <div class="flex items-center justify-between border-b-2 border-sky-400 pb-1">
+            <h3 class="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <span class="section-number-badge bg-sky-500 text-white shadow-sm">៣</span>
               <span>ផ្នែកទី ៣៖ ការបូកសរុបរួមចំណាយចុងក្រោយ (Grand Consolidated Expenses Summary)</span>
             </h3>
-            <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full font-bold border border-indigo-200">បូកសរុបចំណាយទាំង ២ មុខសញ្ញា</span>
+            <span class="text-[10px] bg-sky-100 text-sky-800 px-2.5 py-0.5 rounded-full font-bold border border-sky-200">បូកសរុបចំណាយទាំង ២ មុខសញ្ញា</span>
           </div>
 
-          <table class="w-full text-left border-collapse table-fixed text-[11px] border border-indigo-200 rounded-lg overflow-hidden shadow-sm">
+          <table class="w-full text-left border-collapse table-fixed text-[11px] border border-sky-200 rounded-lg overflow-hidden shadow-sm">
             <thead>
-              <tr class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white font-bold shadow-sm">
-                <th class="py-2 px-2 text-center w-[8%] border-r border-indigo-400/40">ល.រ</th>
-                <th class="py-2 px-3 text-left w-[52%] border-r border-indigo-400/40">មុខសញ្ញាចំណាយហិរញ្ញវត្ថុសរុប</th>
-                <th class="py-2 px-2 text-right w-[20%] border-r border-indigo-400/40">ចំនួនទឹកប្រាក់ ($)</th>
+              <tr class="bg-sky-500 text-white font-bold shadow-sm">
+                <th class="py-2 px-2 text-center w-[8%] border-r border-sky-400">ល.រ</th>
+                <th class="py-2 px-3 text-left w-[52%] border-r border-sky-400">មុខសញ្ញាចំណាយហិរញ្ញវត្ថុសរុប</th>
+                <th class="py-2 px-2 text-right w-[20%] border-r border-sky-400">ចំនួនទឹកប្រាក់ ($)</th>
                 <th class="py-2 px-2 text-right w-[20%]">ចំនួនទឹកប្រាក់ (៛)</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-indigo-100 font-medium bg-white">
-              <tr class="bg-white hover:bg-blue-50/40 transition-colors">
-                <td class="py-2 px-2 text-center text-blue-700 font-bold border-r border-indigo-100 bg-blue-50/50">១</td>
-                <td class="py-2 px-3 text-slate-800 font-semibold border-r border-indigo-100">ចំណាយបញ្ជីចំណូល-ចំណាយទូទៅ (១. General Ledger Expenses)</td>
-                <td id="summary-final-exp-ledger-usd" class="py-2 px-2 text-right text-rose-600 font-bold border-r border-indigo-100">$0.00</td>
+            <tbody class="divide-y divide-sky-100 font-medium bg-white">
+              <tr class="bg-white hover:bg-sky-50/40 transition-colors">
+                <td class="py-2 px-2 text-center text-sky-700 font-bold border-r border-sky-100 bg-sky-50/40">១</td>
+                <td class="py-2 px-3 text-slate-800 font-semibold border-r border-sky-100">ចំណាយបញ្ជីចំណូល-ចំណាយទូទៅ (១. General Ledger Expenses)</td>
+                <td id="summary-final-exp-ledger-usd" class="py-2 px-2 text-right text-rose-600 font-bold border-r border-sky-100">$0.00</td>
                 <td id="summary-final-exp-ledger-khr" class="py-2 px-2 text-right text-rose-600 font-bold">0៛</td>
               </tr>
-              <tr class="bg-amber-50/30 hover:bg-amber-50/60 transition-colors">
-                <td class="py-2 px-2 text-center text-amber-700 font-bold border-r border-indigo-100 bg-amber-50/50">២</td>
-                <td class="py-2 px-3 text-slate-800 font-semibold border-r border-indigo-100">ចំណាយវិក្កយបត្រថ្នាក់ដឹកនាំ (២. Leadership Invoices)</td>
-                <td id="summary-final-exp-inv-usd" class="py-2 px-2 text-right text-amber-700 font-bold border-r border-indigo-100">$0.00</td>
+              <tr class="bg-sky-50/20 hover:bg-sky-50/50 transition-colors">
+                <td class="py-2 px-2 text-center text-sky-700 font-bold border-r border-sky-100 bg-sky-50/40">២</td>
+                <td class="py-2 px-3 text-slate-800 font-semibold border-r border-sky-100">ចំណាយវិក្កយបត្រថ្នាក់ដឹកនាំ (២. Leadership Invoices)</td>
+                <td id="summary-final-exp-inv-usd" class="py-2 px-2 text-right text-amber-700 font-bold border-r border-sky-100">$0.00</td>
                 <td id="summary-final-exp-inv-khr" class="py-2 px-2 text-right text-amber-700 font-bold">0៛</td>
               </tr>
-              <tr class="bg-gradient-to-r from-rose-100 via-rose-50 to-amber-100 border-t-2 border-b-2 border-rose-400 font-bold">
-                <td class="py-2.5 px-2 text-center text-rose-800 font-extrabold border-r border-rose-300 text-xs bg-rose-200/50">៣</td>
-                <td class="py-2.5 px-3 text-rose-900 font-extrabold border-r border-rose-300 text-[12px]">
+              <tr class="bg-gradient-to-r from-rose-50 via-red-50 to-amber-50 border-t-2 border-b-2 border-rose-400 font-bold">
+                <td class="py-2.5 px-2 text-center text-rose-800 font-extrabold border-r border-rose-200 text-xs bg-rose-100/50">៣</td>
+                <td class="py-2.5 px-3 text-rose-900 font-extrabold border-r border-rose-200 text-[12px]">
                   <span>ចំណាយសរុបរួមទាំង ២ មុខសញ្ញា (Grand Total Combined Expenses)</span>
                 </td>
-                <td id="summary-final-grand-exp-usd" class="py-2.5 px-2 text-right font-extrabold text-rose-700 text-sm border-r border-rose-300">$0.00</td>
+                <td id="summary-final-grand-exp-usd" class="py-2.5 px-2 text-right font-extrabold text-rose-700 text-sm border-r border-rose-200">$0.00</td>
                 <td id="summary-final-grand-exp-khr" class="py-2.5 px-2 text-right font-extrabold text-rose-700 text-sm">0៛</td>
               </tr>
             </tbody>

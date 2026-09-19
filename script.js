@@ -758,13 +758,13 @@ function exportCombinedReportPDF() {
         const tr = document.createElement('tr');
         tr.className = row.isOpening ? 'bg-amber-50/70 font-semibold' : (incU > 0 || incK > 0 ? 'bg-emerald-50/40 font-medium' : '');
         tr.innerHTML = `
-          <td class="py-1 px-1 text-center text-slate-500 border-r border-slate-200">${idx + 1}</td>
-          <td class="py-1 px-1 text-center text-slate-700 border-r border-slate-200">${row.date || '-'}</td>
-          <td class="py-1 px-2 text-slate-800 border-r border-slate-200 font-medium">${escapeHtml(row.label || '-')}</td>
-          <td class="py-1 px-1 text-right text-emerald-700 font-semibold border-r border-slate-200">${formatDisplayAmount(row.incUsd, 'USD') || '-'}</td>
-          <td class="py-1 px-1 text-right text-emerald-700 font-semibold border-r border-slate-200">${formatDisplayAmount(row.incKhr, 'KHR') || '-'}</td>
-          <td class="py-1 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.expUsd, 'USD') || '-'}</td>
-          <td class="py-1 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.expKhr, 'KHR') || '-'}</td>
+          <td class="py-1.5 px-1 text-center font-bold text-slate-700 border-r border-slate-200">${idx + 1}</td>
+          <td class="py-1.5 px-1 text-center text-slate-700 border-r border-slate-200">${row.date || '-'}</td>
+          <td class="py-1.5 px-2 text-slate-800 border-r border-slate-200 font-medium">${escapeHtml(row.label || '-')}</td>
+          <td class="py-1.5 px-1 text-right text-emerald-700 font-semibold border-r border-slate-200">${formatDisplayAmount(row.incUsd, 'USD') || '-'}</td>
+          <td class="py-1.5 px-1 text-right text-emerald-700 font-semibold border-r border-slate-200">${formatDisplayAmount(row.incKhr, 'KHR') || '-'}</td>
+          <td class="py-1.5 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.expUsd, 'USD') || '-'}</td>
+          <td class="py-1.5 px-1 text-right text-rose-600 font-semibold border-r border-slate-200">${formatDisplayAmount(row.expKhr, 'KHR') || '-'}</td>
         `;
         ledgerTbody.appendChild(tr);
       });
@@ -795,8 +795,8 @@ function exportCombinedReportPDF() {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
         tr.innerHTML = `
-          <td class="py-1 px-1 text-center text-slate-500 border-r border-slate-200">${idx + 1}</td>
-          <td class="py-1 px-1 text-center text-slate-700 border-r border-slate-200">${row.date || '-'}</td>
+          <td class="py-1.5 px-1 text-center font-bold text-slate-700 border-r border-slate-200">${idx + 1}</td>
+          <td class="py-1.5 px-1 text-center text-slate-700 border-r border-slate-200">${row.date || '-'}</td>
           <td class="py-1 px-2 text-amber-900 font-bold border-r border-slate-200">${escapeHtml(row.invNo || '-')}</td>
           <td class="py-1 px-2 text-slate-800 border-r border-slate-200">${escapeHtml(row.label || '-')}</td>
           <td class="py-1 px-1 text-center border-r border-slate-200 font-semibold text-[10px] ${row.receiptUrl ? 'text-blue-600' : 'text-slate-400'}">${row.receiptUrl ? '✓ មានបង្កាន់ដៃ' : '-'}</td>
