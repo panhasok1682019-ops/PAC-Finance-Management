@@ -1803,6 +1803,10 @@ async function savePinSettings() {
 }
 
 function openAuthModal() {
+  if (currentUserRole !== 'editor') {
+    showSaveToast('🔒 ផ្ទាំងកំណត់សិទ្ធិនេះសម្រាប់តែ អ្នកកត់ត្រា (Admin) ប៉ុណ្ណោះ!');
+    return;
+  }
   const modal = document.getElementById('auth-modal');
   if (!modal) return;
   updateAuthModalUI();
@@ -1833,7 +1837,11 @@ function switchRole(role) {
   }
 
   applyRolePermissions();
-  updateAuthModalUI();
+  if (role === 'viewer') {
+    closeAuthModal();
+  } else {
+    updateAuthModalUI();
+  }
   showSaveToast(`បានប្តូរសិទ្ធិទៅជា៖ ${role === 'viewer' ? 'ថ្នាក់ដឹកនាំ (Viewer)' : 'អ្នកកត់ត្រា (Editor)'}`);
 }
 
@@ -1905,18 +1913,27 @@ function applyRolePermissions() {
     switchTab('ledger');
   }
 
+  // Ensure auth-modal is closed if viewer
+  if (isViewer) {
+    closeAuthModal();
+  }
+
   // Header Role Button Update
   const roleLabel = document.getElementById('user-role-label');
   const roleIcon = document.getElementById('user-role-icon');
   const authBtn = document.getElementById('btn-user-auth');
+  const viewerBadge = document.getElementById('viewer-role-badge');
 
-  if (roleLabel) roleLabel.textContent = isViewer ? 'ថ្នាក់ដឹកនាំ (មើល)' : 'អ្នកកត់ត្រា';
-  if (roleIcon) roleIcon.innerHTML = isViewer ? '<i class="fa-solid fa-crown text-amber-300"></i>' : '<i class="fa-solid fa-user-pen text-amber-400"></i>';
+  if (roleLabel) roleLabel.textContent = 'អ្នកកត់ត្រា (Admin)';
+  if (roleIcon) roleIcon.innerHTML = '<i class="fa-solid fa-user-pen text-amber-400"></i>';
   if (authBtn) {
+    authBtn.style.display = isViewer ? 'none' : '';
+  }
+  if (viewerBadge) {
     if (isViewer) {
-      authBtn.className = 'px-3 py-1.5 bg-blue-900/80 hover:bg-blue-800 text-blue-100 border border-blue-600 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer';
+      viewerBadge.classList.remove('hidden');
     } else {
-      authBtn.className = 'px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer';
+      viewerBadge.classList.add('hidden');
     }
   }
 

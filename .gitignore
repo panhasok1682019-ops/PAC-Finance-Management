@@ -1,0 +1,5 @@
+.vercel
+.venv
+.idea
+*.lnk
+run.bat

@@ -292,13 +292,21 @@
               <span id="supabase-status-label" class="hidden sm:inline">Supabase</span>
             </button>
 
-            <!-- User Role & Auth Button -->
+            <!-- User Role & Auth Button (Editor/Admin Only) -->
             <button id="btn-user-auth" onclick="openAuthModal()"
-              class="px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
-              title="ប្តូរសិទ្ធិ ឬ ចូលគណនី">
+              class="editor-only px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              title="ការកំណត់សិទ្ធិ និងគណនី (Admin)">
               <span id="user-role-icon"><i class="fa-solid fa-user-pen text-amber-400"></i></span>
-              <span id="user-role-label">អ្នកកត់ត្រា</span>
+              <span id="user-role-label">អ្នកកត់ត្រា (Admin)</span>
             </button>
+
+            <!-- Viewer Role Badge (Non-clickable, Leadership Only) -->
+            <div id="viewer-role-badge"
+              class="hidden px-2.5 sm:px-3 py-1.5 bg-blue-950/70 text-blue-200 border border-blue-700/60 text-xs md:text-sm font-semibold rounded-xl flex items-center gap-1.5 select-none"
+              title="សិទ្ធិថ្នាក់ដឹកនាំ (មើលរបាយការណ៍)">
+              <i class="fa-solid fa-crown text-amber-300"></i>
+              <span>ថ្នាក់ដឹកនាំ (មើល)</span>
+            </div>
 
             <!-- Logout Button -->
             <button id="btn-app-logout" onclick="handleAppLogout()"
