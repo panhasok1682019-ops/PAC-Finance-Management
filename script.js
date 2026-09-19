@@ -107,8 +107,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Enter to Navigate Row Below
-  document.addEventListener('keydown', handleTableEnterNavigation);
+  // Excel-like Keyboard Navigation (Enter, Shift+Enter, Arrows, Tab)
+  document.addEventListener('keydown', handleTableKeyboardNavigation);
+
+  // Excel-like Multi-cell & Multi-row Paste from Excel
+  document.addEventListener('paste', handleTablePaste);
+
+  // Auto-select cell text on click/focus like Excel
+  document.addEventListener('focusin', (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('cell-input')) {
+      if (typeof e.target.select === 'function' && e.target.type !== 'date') {
+        setTimeout(() => e.target.select(), 15);
+      }
+    }
+  });
 
   // Initialize Supabase in background
   initSupabase();
@@ -179,44 +191,363 @@ function showSaveToast(customMsg) {
   }, 2200);
 }
 
-function handleTableEnterNavigation(e) {
-  if (e.key !== 'Enter') return;
+/* ==========================================================================
+   KHMER NUMERAL CONVERSION & PARSING (លេខខ្មែរ -> លេខបារាំង / សកល)
+   ========================================================================== */
+const KHMER_TO_ARABIC_DIGITS = {
+  '០': '0', '១': '1', '២': '2', '៣': '3', '៤': '4',
+  '៥': '5', '៦': '6', '៧': '7', '៨': '8', '៩': '9'
+};
+
+function convertKhmerToArabicNumerals(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[០-៩]/g, ch => KHMER_TO_ARABIC_DIGITS[ch] || ch);
+}
+
+function parseAndCleanAmount(val) {
+  if (val === null || val === undefined) return '';
+  let str = convertKhmerToArabicNumerals(String(val));
+  // Remove currency symbols, commas, spaces, etc.
+  str = str.replace(/[^0-9.]/g, '');
+  // Keep only one decimal dot
+  const parts = str.split('.');
+  if (parts.length > 2) {
+    str = parts[0] + '.' + parts.slice(1).join('');
+  }
+  return str;
+}
+
+function normalizePastedDate(val, selectedMonth) {
+  if (!val) return `${selectedMonth}-01`;
+  let s = convertKhmerToArabicNumerals(val.trim());
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+    const [d, m, y] = s.split('/');
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(s)) {
+    const [d, m, y] = s.split('-');
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  if (/^\d{1,2}$/.test(s)) {
+    return `${selectedMonth}-${s.padStart(2, '0')}`;
+  }
+  return s;
+}
+
+/* ==========================================================================
+   EXCEL-LIKE KEYBOARD NAVIGATION (Arrows, Enter, Shift+Enter, Tab)
+   ========================================================================== */
+function handleTableKeyboardNavigation(e) {
   const target = e.target;
-  if (!target || !target.classList.contains('cell-input')) return;
+  if (!target || !target.classList || !target.classList.contains('cell-input')) return;
 
   const currentTd = target.closest('td');
   const currentTr = target.closest('tr');
-  if (!currentTd || !currentTr) return;
+  const tbody = currentTr ? currentTr.closest('tbody') : null;
+  if (!currentTd || !currentTr || !tbody) return;
 
+  const rowInputs = Array.from(currentTr.querySelectorAll('input.cell-input:not([disabled])'));
+  const currentInputIndex = rowInputs.indexOf(target);
   const cellIndex = Array.from(currentTr.children).indexOf(currentTd);
-  const nextTr = currentTr.nextElementSibling;
 
-  if (nextTr) {
-    const nextCell = nextTr.children[cellIndex];
-    if (nextCell) {
-      const nextInput = nextCell.querySelector('input');
-      if (nextInput && !nextInput.disabled) {
-        e.preventDefault();
-        nextInput.focus();
-        if (typeof nextInput.select === 'function') nextInput.select();
-      }
+  const focusInput = (input) => {
+    if (!input || input.disabled) return false;
+    input.focus();
+    if (typeof input.select === 'function') {
+      setTimeout(() => input.select(), 15);
     }
-  } else {
+    return true;
+  };
+
+  // 1. ENTER / DOWN ARROW (Move to next row)
+  if (e.key === 'Enter' || e.key === 'ArrowDown') {
+    if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault();
+      const prevTr = currentTr.previousElementSibling;
+      if (prevTr) {
+        const prevCell = prevTr.children[cellIndex];
+        const prevInput = prevCell ? prevCell.querySelector('input.cell-input') : null;
+        if (prevInput) focusInput(prevInput);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown' && target.type === 'date') return;
+
     e.preventDefault();
-    if (currentTr.closest('#ledger-body')) {
-      addNewRow();
-    } else if (currentTr.closest('#invoice-body')) {
-      addInvoiceRow();
-    }
-    setTimeout(() => {
-      const tbody = currentTr.closest('tbody');
-      const newRows = tbody.querySelectorAll('tr');
-      const lastRow = newRows[newRows.length - 1];
-      if (lastRow && lastRow.children[cellIndex]) {
-        const input = lastRow.children[cellIndex].querySelector('input');
-        if (input) input.focus();
+    const nextTr = currentTr.nextElementSibling;
+    if (nextTr) {
+      const nextCell = nextTr.children[cellIndex];
+      const nextInput = nextCell ? nextCell.querySelector('input.cell-input') : null;
+      if (nextInput) {
+        focusInput(nextInput);
       }
-    }, 50);
+    } else {
+      // Last row: Auto add row like Excel
+      if (tbody.id === 'ledger-body') {
+        addNewRow();
+      } else if (tbody.id === 'invoice-body') {
+        addInvoiceRow();
+      }
+      setTimeout(() => {
+        const newRows = tbody.querySelectorAll('tr');
+        const lastRow = newRows[newRows.length - 1];
+        if (lastRow && lastRow.children[cellIndex]) {
+          const input = lastRow.children[cellIndex].querySelector('input.cell-input');
+          if (input) focusInput(input);
+        }
+      }, 60);
+    }
+    return;
+  }
+
+  // 2. UP ARROW (Move to previous row)
+  if (e.key === 'ArrowUp') {
+    if (target.type === 'date') return;
+    e.preventDefault();
+    const prevTr = currentTr.previousElementSibling;
+    if (prevTr) {
+      const prevCell = prevTr.children[cellIndex];
+      const prevInput = prevCell ? prevCell.querySelector('input.cell-input') : null;
+      if (prevInput) focusInput(prevInput);
+    }
+    return;
+  }
+
+  // 3. TAB / RIGHT ARROW
+  if (e.key === 'Tab' && !e.shiftKey) {
+    if (currentInputIndex < rowInputs.length - 1) {
+      e.preventDefault();
+      focusInput(rowInputs[currentInputIndex + 1]);
+    } else {
+      const nextTr = currentTr.nextElementSibling;
+      if (nextTr) {
+        const nextInputs = Array.from(nextTr.querySelectorAll('input.cell-input:not([disabled])'));
+        if (nextInputs.length > 0) {
+          e.preventDefault();
+          focusInput(nextInputs[0]);
+        }
+      } else {
+        e.preventDefault();
+        if (tbody.id === 'ledger-body') addNewRow();
+        else if (tbody.id === 'invoice-body') addInvoiceRow();
+        setTimeout(() => {
+          const newRows = tbody.querySelectorAll('tr');
+          const lastRow = newRows[newRows.length - 1];
+          if (lastRow) {
+            const nextInputs = Array.from(lastRow.querySelectorAll('input.cell-input:not([disabled])'));
+            if (nextInputs.length > 0) focusInput(nextInputs[0]);
+          }
+        }, 60);
+      }
+    }
+    return;
+  }
+
+  if (e.key === 'ArrowRight') {
+    const isAtEnd = target.selectionStart === target.selectionEnd && target.selectionEnd === target.value.length;
+    const isAllSelected = target.selectionStart === 0 && target.selectionEnd === target.value.length;
+    if (isAtEnd || isAllSelected) {
+      if (currentInputIndex < rowInputs.length - 1) {
+        e.preventDefault();
+        focusInput(rowInputs[currentInputIndex + 1]);
+      }
+    }
+    return;
+  }
+
+  // 4. SHIFT+TAB / LEFT ARROW
+  if (e.key === 'Tab' && e.shiftKey) {
+    if (currentInputIndex > 0) {
+      e.preventDefault();
+      focusInput(rowInputs[currentInputIndex - 1]);
+    } else {
+      const prevTr = currentTr.previousElementSibling;
+      if (prevTr) {
+        const prevInputs = Array.from(prevTr.querySelectorAll('input.cell-input:not([disabled])'));
+        if (prevInputs.length > 0) {
+          e.preventDefault();
+          focusInput(prevInputs[prevInputs.length - 1]);
+        }
+      }
+    }
+    return;
+  }
+
+  if (e.key === 'ArrowLeft') {
+    const isAtStart = target.selectionStart === target.selectionEnd && target.selectionStart === 0;
+    const isAllSelected = target.selectionStart === 0 && target.selectionEnd === target.value.length;
+    if (isAtStart || isAllSelected) {
+      if (currentInputIndex > 0) {
+        e.preventDefault();
+        focusInput(rowInputs[currentInputIndex - 1]);
+      }
+    }
+    return;
+  }
+}
+
+/* ==========================================================================
+   EXCEL MULTI-CELL & MULTI-ROW COPY-PASTE HANDLER
+   ========================================================================== */
+function handleTablePaste(e) {
+  const target = e.target;
+  if (!target || !target.classList || !target.classList.contains('cell-input')) return;
+
+  const clipboardData = e.clipboardData || window.clipboardData;
+  if (!clipboardData) return;
+
+  const rawText = clipboardData.getData('text/plain');
+  if (!rawText) return;
+
+  const currentTd = target.closest('td');
+  const currentTr = target.closest('tr');
+  const tbody = currentTr ? currentTr.closest('tbody') : null;
+  if (!currentTd || !currentTr || !tbody) return;
+
+  const isLedger = tbody.id === 'ledger-body';
+  const isInvoice = tbody.id === 'invoice-body';
+  if (!isLedger && !isInvoice) return;
+
+  if (currentUserRole === 'viewer') {
+    showSaveToast('⚠️ សិទ្ធិមើល មិនអាច Paste ឬកែប្រែទិន្នន័យបានឡើយ។');
+    return;
+  }
+
+  const hasTabs = rawText.includes('\t');
+  const hasNewlines = rawText.includes('\n') || rawText.includes('\r');
+
+  // Check if this is a multi-cell or multi-row paste from Excel
+  if (hasTabs || hasNewlines) {
+    e.preventDefault();
+
+    const rawLines = rawText.trimEnd().split(/\r?\n/);
+    const lines = rawLines.map(line => line.split('\t'));
+    if (lines.length === 0) return;
+
+    let fieldsOrder = [];
+    if (isLedger) {
+      fieldsOrder = ['date', 'label', 'incUsd', 'incKhr', 'expUsd', 'expKhr'];
+    } else {
+      fieldsOrder = ['date', 'invNo', 'label', 'amountUsd', 'amountKhr'];
+    }
+
+    let startField = '';
+    if (isLedger) {
+      if (currentTd.classList.contains('col-date')) startField = 'date';
+      else if (currentTd.classList.contains('col-label')) startField = 'label';
+      else if (currentTd.classList.contains('col-inc')) {
+        const incTds = Array.from(currentTr.querySelectorAll('.col-inc'));
+        startField = (incTds.indexOf(currentTd) === 1) ? 'incKhr' : 'incUsd';
+      } else if (currentTd.classList.contains('col-exp')) {
+        const expTds = Array.from(currentTr.querySelectorAll('.col-exp'));
+        startField = (expTds.indexOf(currentTd) === 1) ? 'expKhr' : 'expUsd';
+      }
+    } else {
+      if (currentTd.classList.contains('col-inv-date')) startField = 'date';
+      else if (currentTd.classList.contains('col-inv-no')) startField = 'invNo';
+      else if (currentTd.classList.contains('col-inv-label')) startField = 'label';
+      else if (currentTd.classList.contains('col-inv-usd')) startField = 'amountUsd';
+      else if (currentTd.classList.contains('col-inv-khr')) startField = 'amountKhr';
+    }
+
+    let startColIndex = fieldsOrder.indexOf(startField);
+    if (startColIndex === -1) startColIndex = 0;
+
+    const allTrs = Array.from(tbody.querySelectorAll('tr'));
+    let startRowIndex = allTrs.indexOf(currentTr);
+    if (startRowIndex === -1) startRowIndex = 0;
+
+    const selectedMonth = getSelectedMonthStr();
+    let filteredList = isLedger ? getSelectedMonthData() : getSelectedInvoiceData();
+
+    // If starting on opening balance row, move down to first editable row
+    if (filteredList[startRowIndex] && filteredList[startRowIndex].isOpening) {
+      startRowIndex++;
+    }
+
+    // Auto-create additional rows if needed
+    const totalNeeded = startRowIndex + lines.length;
+    const missingRows = totalNeeded - filteredList.length;
+    if (missingRows > 0) {
+      for (let i = 0; i < missingRows; i++) {
+        const newId = Date.now() + Math.floor(Math.random() * 10000) + i;
+        if (isLedger) {
+          ledgerData.push({
+            id: newId,
+            date: `${selectedMonth}-01`,
+            label: '',
+            incUsd: '',
+            incKhr: '',
+            expUsd: '',
+            expKhr: '',
+            isOpening: false
+          });
+        } else {
+          invoiceData.push({
+            id: newId,
+            date: `${selectedMonth}-01`,
+            invNo: '',
+            label: '',
+            amountUsd: '',
+            amountKhr: '',
+            receiptUrl: ''
+          });
+        }
+      }
+    }
+
+    filteredList = isLedger ? getSelectedMonthData() : getSelectedInvoiceData();
+
+    let pasteCount = 0;
+    lines.forEach((lineCells, rOffset) => {
+      const targetRow = filteredList[startRowIndex + rOffset];
+      if (!targetRow || targetRow.isOpening) return;
+
+      lineCells.forEach((cellVal, cOffset) => {
+        const fieldIdx = startColIndex + cOffset;
+        if (fieldIdx >= fieldsOrder.length) return;
+        const fieldName = fieldsOrder[fieldIdx];
+
+        let val = cellVal.trim();
+        val = convertKhmerToArabicNumerals(val);
+
+        if (['incUsd', 'incKhr', 'expUsd', 'expKhr', 'amountUsd', 'amountKhr'].includes(fieldName)) {
+          val = parseAndCleanAmount(val);
+        } else if (fieldName === 'date') {
+          val = normalizePastedDate(val, selectedMonth);
+        }
+
+        targetRow[fieldName] = val;
+      });
+      pasteCount++;
+    });
+
+    if (isLedger) {
+      renderTable();
+      recalculateBalances();
+    } else {
+      renderInvoiceTable();
+      recalculateInvoiceTotals();
+    }
+
+    manualSave();
+    showSaveToast(`📋 បាន Paste ទិន្នន័យពី Excel ចំនួន ${pasteCount} ជួរដោយជោគជ័យ!`);
+  } else {
+    // Single cell paste: if amount field, clean and convert Khmer numerals automatically
+    const isAmountField = currentTd.classList.contains('col-inc') || currentTd.classList.contains('col-exp') || currentTd.classList.contains('col-inv-usd') || currentTd.classList.contains('col-inv-khr');
+    if (isAmountField) {
+      e.preventDefault();
+      const cleanVal = parseAndCleanAmount(rawText);
+      const start = target.selectionStart || 0;
+      const end = target.selectionEnd || 0;
+      const oldVal = target.value;
+      const newVal = oldVal.substring(0, start) + cleanVal + oldVal.substring(end);
+      target.value = newVal;
+      target.setSelectionRange(start + cleanVal.length, start + cleanVal.length);
+      target.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   }
 }
 
@@ -482,27 +813,46 @@ function renderInvoiceTable() {
 }
 
 /* Helpers & Shared Handlers */
-function onAmountFocus(inputEl, rawVal) { inputEl.value = rawVal; inputEl.select(); }
+function onAmountFocus(inputEl, rawVal) {
+  inputEl.value = rawVal;
+  inputEl.select();
+}
 
 function onAmountBlur(id, field, inputEl, currency) {
-  const cleanVal = inputEl.value.replace(/[^0-9.]/g, '');
+  const cleanVal = parseAndCleanAmount(inputEl.value);
   updateRowData(id, field, cleanVal);
   inputEl.value = formatDisplayAmount(cleanVal, currency);
   updateRowUI(id);
 }
 
 function onInvoiceAmountBlur(id, field, inputEl, currency) {
-  const cleanVal = inputEl.value.replace(/[^0-9.]/g, '');
+  const cleanVal = parseAndCleanAmount(inputEl.value);
   updateInvoiceData(id, field, cleanVal);
   inputEl.value = formatDisplayAmount(cleanVal, currency);
 }
 
 function handleAmountInput(id, field, inputEl) {
-  updateRowData(id, field, inputEl.value.replace(/[^0-9.]/g, ''));
+  const converted = convertKhmerToArabicNumerals(inputEl.value);
+  if (converted !== inputEl.value) {
+    const selStart = inputEl.selectionStart;
+    const selEnd = inputEl.selectionEnd;
+    inputEl.value = converted;
+    if (selStart !== null) inputEl.setSelectionRange(selStart, selEnd);
+  }
+  const cleanVal = parseAndCleanAmount(converted);
+  updateRowData(id, field, cleanVal);
 }
 
 function handleInvoiceAmountInput(id, field, inputEl) {
-  updateInvoiceData(id, field, inputEl.value.replace(/[^0-9.]/g, ''));
+  const converted = convertKhmerToArabicNumerals(inputEl.value);
+  if (converted !== inputEl.value) {
+    const selStart = inputEl.selectionStart;
+    const selEnd = inputEl.selectionEnd;
+    inputEl.value = converted;
+    if (selStart !== null) inputEl.setSelectionRange(selStart, selEnd);
+  }
+  const cleanVal = parseAndCleanAmount(converted);
+  updateInvoiceData(id, field, cleanVal);
 }
 
 function recalculateBalances() {
