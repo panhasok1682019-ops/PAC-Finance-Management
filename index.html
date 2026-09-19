@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="km">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ប្រព័ន្ធគ្រប់គ្រងការងារហិរញ្ញវត្ថុ និងវិក្កយបត្រ - បណ្ឌិត្យសភានគរបាលកម្ពុជា</title>
+
+  <!-- Tailwind CSS & FontAwesome CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Moul&display=swap"
+    rel="stylesheet">
+
+  <!-- HTML2PDF Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Supabase JS Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-slate-100 text-slate-800 font-kantumruy antialiased min-h-screen">
+
+  <!-- ==================== DEDICATED LOGIN PORTAL ==================== -->
+  <div id="login-portal"
+    class="fixed inset-0 z-50 flex flex-col items-center justify-start sm:justify-center p-3 sm:p-6 overflow-y-auto min-h-screen py-6 sm:py-8">
+
+    <!-- Background Ambient Glow Elements -->
+    <div
+      class="fixed top-1/4 -left-20 w-72 h-72 sm:w-96 sm:h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none">
+    </div>
+    <div
+      class="fixed bottom-1/4 -right-20 w-72 h-72 sm:w-96 sm:h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none">
+    </div>
+
+    <!-- Login Container Card -->
+    <div
+      class="relative w-full max-w-md login-glass-card rounded-3xl border border-slate-700/70 p-5 sm:p-7 space-y-5 my-auto text-white shadow-2xl">
+
+      <!-- Header: Official Emblem & Typography -->
+      <div class="text-center space-y-2.5">
+        <div
+          class="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-amber-400/20 via-blue-500/20 to-blue-600/30 border-2 border-amber-400/50 shadow-2xl shadow-blue-950/70 backdrop-blur-md transition-all hover:scale-105 duration-300">
+          <img src="logo.png" alt="បណ្ឌិត្យសភានគរបាលកម្ពុជា"
+            class="w-full h-full object-contain rounded-full drop-shadow-xl">
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-wide text-amber-400 font-moul leading-snug">
+            បណ្ឌិត្យសភានគរបាលកម្ពុជា</h1>
+          <p class="text-xs sm:text-sm text-slate-200 font-semibold">ប្រព័ន្ធគ្រប់គ្រង និងតាមដានរបាយការណ៍ហិរញ្ញវត្ថុ</p>
+        </div>
+      </div>
+
+      <!-- Role Selection Cards -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-300">ជ្រើសរើសតួនាទីចូលប្រើប្រាស់៖</label>
+        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-950/80 rounded-2xl border border-slate-800">
+
+          <!-- Role 1: Leadership / Viewer -->
+          <button type="button" id="login-tab-viewer" onclick="selectLoginRole('viewer')"
+            class="py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer role-tab-active">
+            <div class="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-blue-400">
+              <i class="fa-solid fa-crown"></i>
+              <span>ថ្នាក់ដឹកនាំ</span>
+            </div>
+          </button>
+
+          <!-- Role 2: Recorder / Editor -->
+          <button type="button" id="login-tab-editor" onclick="selectLoginRole('editor')"
+            class="py-2.5 px-2 rounded-xl transition flex flex-col items-center gap-1 cursor-pointer role-tab-inactive">
+            <div class="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-emerald-400">
+              <i class="fa-solid fa-user-pen"></i>
+              <span>អ្នកកត់ត្រា</span>
+            </div>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Selected Role Info Banner -->
+      <div id="login-role-info"
+        class="p-3 rounded-2xl bg-slate-800/70 border border-slate-700/80 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2.5">
+          <div id="login-role-icon"
+            class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-crown"></i>
+          </div>
+          <div>
+            <p id="login-role-title" class="font-bold text-slate-100">ចូលជា ថ្នាក់ដឹកនាំ (Viewer)</p>
+          </div>
+        </div>
+        <span id="login-role-badge"
+          class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 shrink-0">Read-Only</span>
+      </div>
+
+      <!-- Standard PIN Form -->
+      <form id="login-pin-form" onsubmit="handlePinLoginSubmit(event)" class="space-y-4">
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label for="login-pin-input" class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-key text-amber-400"></i>
+              <span>លេខកូដសម្ងាត់ (PIN)៖</span>
+            </label>
+          </div>
+
+          <div class="relative">
+            <input type="password" id="login-pin-input" inputmode="numeric" placeholder="បញ្ចូលលេខកូដសម្ងាត់..."
+              autocomplete="current-password"
+              class="w-full pl-4 pr-11 py-2.5 sm:py-3 text-base sm:text-sm bg-slate-950/90 border border-slate-700 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/30 tracking-widest font-mono transition" />
+            <button type="button" onclick="toggleLoginPasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 cursor-pointer" title="បង្ហាញ/លាក់លេខកូដ">
+              <i id="login-eye-icon" class="fa-regular fa-eye-slash text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Controls: Remember Me + Keypad Toggle -->
+        <div class="flex items-center justify-between text-xs">
+          <label class="flex items-center gap-2 cursor-pointer text-slate-300 select-none">
+            <input type="checkbox" id="login-remember-me" checked
+              class="w-4 h-4 rounded border-slate-700 text-amber-500 focus:ring-amber-500 focus:ring-offset-slate-900 bg-slate-950 cursor-pointer">
+            <span>ចងចាំការចូលប្រើ (Remember Me)</span>
+          </label>
+          <button type="button" onclick="toggleKeypad()"
+            class="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-calculator"></i>
+            <span id="keypad-toggle-label">លេខចុចអេក្រង់</span>
+          </button>
+        </div>
+
+        <!-- Mobile-friendly Virtual Numeric Keypad (Collapsible) -->
+        <div id="login-keypad" class="hidden grid-cols-3 gap-2 pt-1">
+          <button type="button" onclick="appendPinDigit('1')" class="keypad-btn">1</button>
+          <button type="button" onclick="appendPinDigit('2')" class="keypad-btn">2</button>
+          <button type="button" onclick="appendPinDigit('3')" class="keypad-btn">3</button>
+          <button type="button" onclick="appendPinDigit('4')" class="keypad-btn">4</button>
+          <button type="button" onclick="appendPinDigit('5')" class="keypad-btn">5</button>
+          <button type="button" onclick="appendPinDigit('6')" class="keypad-btn">6</button>
+          <button type="button" onclick="appendPinDigit('7')" class="keypad-btn">7</button>
+          <button type="button" onclick="appendPinDigit('8')" class="keypad-btn">8</button>
+          <button type="button" onclick="appendPinDigit('9')" class="keypad-btn">9</button>
+          <button type="button" onclick="clearPin()"
+            class="keypad-btn text-xs text-rose-400 font-semibold">លុបទាំងអស់</button>
+          <button type="button" onclick="appendPinDigit('0')" class="keypad-btn">0</button>
+          <button type="button" onclick="backspacePin()" class="keypad-btn text-amber-400"><i
+              class="fa-solid fa-delete-left"></i></button>
+        </div>
+
+        <!-- Error / Status Message Banner -->
+        <div id="login-error-msg"
+          class="hidden text-xs p-3 rounded-xl font-medium bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-2">
+          <i class="fa-solid fa-circle-exclamation text-rose-400 shrink-0 text-sm"></i>
+          <span id="login-error-text"></span>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="btn-login-submit"
+          class="w-full py-3 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-bold text-sm sm:text-base rounded-2xl shadow-lg shadow-amber-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-right-to-bracket text-base"></i>
+          <span>ចូលប្រើប្រាស់ប្រព័ន្ធ</span>
+        </button>
+      </form>
+
+      <!-- Supabase Cloud Auth Alternative Toggle -->
+      <div class="pt-2 border-t border-slate-800 text-center">
+        <button type="button" onclick="toggleSupabasePortalForm()"
+          class="text-xs text-slate-400 hover:text-amber-400 transition inline-flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-cloud text-xs text-emerald-400"></i>
+          <span id="supabase-toggle-text">ចូលដោយគណនី Supabase Cloud (Email)</span>
+        </button>
+      </div>
+
+      <!-- Collapsible Supabase Form inside Login Card -->
+      <div id="portal-supabase-form" class="hidden space-y-3 pt-2 border-t border-slate-800/80">
+        <p class="text-[11px] text-slate-400 text-center">ចូលដោយផ្ទាល់ជាមួយ Supabase Cloud Auth</p>
+        <input type="email" id="portal-supabase-email" placeholder="អ៊ីមែល (Email)..."
+          class="w-full px-3 py-2 text-xs rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans" />
+        <input type="password" id="portal-supabase-password" placeholder="លេខសម្ងាត់ (Password)..."
+          class="w-full px-3 py-2 text-xs rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-sans" />
+        <button type="button" onclick="handlePortalSupabaseSignIn()"
+          class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Sign In Supabase</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Security & Institutional Footer -->
+    <div class="mt-4 text-center text-[11px] text-slate-500 space-y-0.5">
+      <p>បណ្ឌិត្យសភានគរបាលកម្ពុជា • Police Academy of Cambodia</p>
+      <p class="text-[10px] text-slate-600">ប្រព័ន្ធរក្សាការសម្ងាត់ និងសុវត្ថិភាពហិរញ្ញវត្ថុកម្រិតខ្ពស់</p>
+    </div>
+
+  </div>
+
+  <!-- ==================== MAIN APPLICATION CONTAINER (LOCKED UNTIL AUTH) ==================== -->
+  <div id="app-container" class="hidden min-h-screen">
+
+    <!-- ==================== ផ្នែកខាងលើ (STICKY លើ DESKTOP, SCROLL លើ PHONE) ==================== -->
+    <div id="top-sticky-wrapper" class="relative md:sticky md:top-0 z-40 bg-slate-100 shadow-sm md:shadow-md transition-all">
+
+      <!-- ១. TOP MENU BAR -->
+      <header class="bg-slate-900 text-white shadow-lg border-b border-slate-800 backdrop-blur-md bg-opacity-95">
+        <div class="max-w-[98%] mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+
+          <!-- Logo & App Title -->
+          <div class="flex items-center gap-2.5 sm:gap-3">
+            <img src="logo.png" alt="Logo បណ្ឌិត្យសភានគរបាលកម្ពុជា"
+              class="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-full shadow border border-amber-400/30 shrink-0">
+            <div>
+              <h1 class="text-xs sm:text-base md:text-lg font-bold tracking-tight text-white leading-normal">
+                បណ្ឌិត្យសភានគរបាលកម្ពុជា</h1>
+              <p class="text-[10px] sm:text-[11px] md:text-xs text-slate-300">ប្រព័ន្ធគ្រប់គ្រង និងតាមដានរបាយការណ៍ហិរញ្ញវត្ថុ</p>
+            </div>
+          </div>
+
+          <!-- Tab Buttons -->
+          <div id="main-nav-tabs" class="flex items-center bg-slate-800/90 p-1 rounded-2xl border border-slate-700 w-full sm:w-auto">
+            <button id="tab-btn-ledger" onclick="switchTab('ledger')"
+              class="px-3 sm:px-4 py-2 text-xs md:text-sm font-bold rounded-xl transition flex items-center gap-2 bg-blue-600 text-white shadow cursor-pointer">
+              <i class="fa-solid fa-scale-balanced text-sm"></i>
+              <span>បញ្ជីចំណូល-ចំណាយ</span>
+            </button>
+            <button id="tab-btn-invoices" onclick="switchTab('invoices')"
+              class="editor-only px-3 sm:px-4 py-2 text-xs md:text-sm font-bold text-slate-300 hover:text-white rounded-xl transition flex items-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+              <span>របាយការណ៍វិក្កយបត្រថ្នាក់ដឹកនាំ</span>
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center flex-wrap gap-1.5 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <div
+              class="flex items-center bg-slate-800 border border-slate-700 px-2 sm:px-2.5 py-1 rounded-xl text-slate-200 text-xs md:text-sm gap-1 sm:gap-1.5 shadow-inner">
+              <i class="fa-regular fa-calendar-days text-slate-400"></i>
+              <span class="font-medium text-slate-300">ខែ:</span>
+
+              <select id="month-select"
+                class="bg-slate-900 text-white font-semibold text-xs md:text-sm px-1.5 sm:px-2 py-0.5 rounded-lg border border-slate-700 outline-none cursor-pointer hover:border-slate-500 transition">
+                <option value="01">មករា</option>
+                <option value="02">កុម្ភៈ</option>
+                <option value="03">មីនា</option>
+                <option value="04">មេសា</option>
+                <option value="05">ឧសភា</option>
+                <option value="06">មិថុនា</option>
+                <option value="07">កក្កដា</option>
+                <option value="08">សីហា</option>
+                <option value="09">កញ្ញា</option>
+                <option value="10">តុលា</option>
+                <option value="11">វិច្ឆិកា</option>
+                <option value="12">ធ្នូ</option>
+              </select>
+
+              <select id="year-select"
+                class="bg-slate-900 text-white font-semibold text-xs md:text-sm px-1.5 sm:px-2 py-0.5 rounded-lg border border-slate-700 outline-none cursor-pointer hover:border-slate-500 transition">
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+              </select>
+            </div>
+
+            <button id="btn-close-month" onclick="openCloseMonthModal()"
+              class="px-2.5 sm:px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              title="បូកសរុប និងបិទបញ្ជីប្រចាំខែ">
+              <i class="fa-solid fa-lock text-xs"></i>
+              <span>បិទបញ្ជី</span>
+            </button>
+
+            <button id="btn-export-pdf"
+              class="px-2.5 sm:px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-file-pdf text-xs"></i>
+              <span>Export PDF</span>
+            </button>
+
+            <!-- Supabase Connection Indicator & Settings Button -->
+            <button id="btn-supabase-modal" onclick="openSupabaseModal()"
+              class="editor-only px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              title="ការកំណត់ Supabase Cloud Database">
+              <span id="supabase-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+              <i class="fa-solid fa-cloud text-xs"></i>
+              <span id="supabase-status-label" class="hidden sm:inline">Supabase</span>
+            </button>
+
+            <!-- User Role & Auth Button -->
+            <button id="btn-user-auth" onclick="openAuthModal()"
+              class="px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              title="ប្តូរសិទ្ធិ ឬ ចូលគណនី">
+              <span id="user-role-icon"><i class="fa-solid fa-user-pen text-amber-400"></i></span>
+              <span id="user-role-label">អ្នកកត់ត្រា</span>
+            </button>
+
+            <!-- Logout Button -->
+            <button id="btn-app-logout" onclick="handleAppLogout()"
+              class="px-2.5 sm:px-3 py-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white border border-rose-500 text-xs md:text-sm font-semibold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer"
+              title="ចាកចេញពីប្រព័ន្ធ (Logout)">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span class="hidden sm:inline">ចាកចេញ</span>
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- ២. ផ្ទាំង STATS CARDS & TOOLBAR សម្រាប់ TAB 1 -->
+      <div id="sticky-header-ledger" class="max-w-[98%] mx-auto px-2 sm:px-4 pt-2.5 pb-2.5 space-y-2 sm:space-y-2.5">
+
+        <!-- DASHBOARD STATS CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
+          <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-emerald-100 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <p class="text-[11px] sm:text-xs font-semibold text-slate-500">ចំនួនទឹកប្រាក់ចូលសរុប</p>
+              <div id="total-inc-usd" class="text-base sm:text-lg md:text-xl font-bold text-emerald-600 leading-tight">$0.00</div>
+              <div id="total-inc-khr" class="text-sm sm:text-base md:text-lg font-bold text-emerald-700 leading-tight">0៛</div>
+            </div>
+            <div
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base sm:text-lg shadow-inner shrink-0">
+              <i class="fa-solid fa-arrow-down-left"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-rose-100 flex items-center justify-between">
+            <div class="space-y-0.5">
+              <p class="text-[11px] sm:text-xs font-semibold text-slate-500">ចំនួនទឹកប្រាក់ចេញសរុប</p>
+              <div id="total-exp-usd" class="text-base sm:text-lg md:text-xl font-bold text-rose-600 leading-tight">$0.00</div>
+              <div id="total-exp-khr" class="text-sm sm:text-base md:text-lg font-bold text-rose-700 leading-tight">0៛</div>
+            </div>
+            <div
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base sm:text-lg shadow-inner shrink-0">
+              <i class="fa-solid fa-arrow-up-right"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-blue-100 flex items-center justify-between sm:col-span-2 md:col-span-1">
+            <div class="space-y-0.5">
+              <p class="text-[11px] sm:text-xs font-semibold text-slate-500">ចំនួនទឹកប្រាក់សមតុល្យ</p>
+              <div id="net-balance-usd" class="text-base sm:text-lg md:text-xl font-bold text-blue-600 leading-tight">$0.00</div>
+              <div id="net-balance-khr" class="text-sm sm:text-base md:text-lg font-bold text-blue-700 leading-tight">0៛</div>
+            </div>
+            <div
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-base sm:text-lg shadow-inner shrink-0">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- ៣. Toolbar ជួរ «បញ្ជីចំណូល-ចំណាយ» -->
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white px-3 sm:px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between sm:justify-start gap-2">
+            <h2 class="text-xs sm:text-sm md:text-base font-bold text-slate-800 flex items-center gap-1.5 sm:gap-2">
+              <span>បញ្ជីចំណូល-ចំណាយ</span>
+              <span id="current-selected-month" class="text-blue-600 text-xs sm:text-sm md:text-base font-bold"></span>
+            </h2>
+            <span id="record-count" class="text-[11px] sm:text-xs bg-slate-100 text-slate-600 px-2 sm:px-2.5 py-0.5 rounded-full font-medium">0
+              កំណត់ត្រា</span>
+          </div>
+
+          <div class="flex items-center flex-wrap sm:flex-nowrap gap-2">
+            <div class="relative flex-1 sm:flex-initial w-full sm:w-auto">
+              <i
+                class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="table-search" placeholder="ស្វែងរកបរិយាយ..."
+                class="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs md:text-sm outline-none focus:border-blue-500 w-full sm:w-44 md:w-60 transition">
+            </div>
+
+            <button id="btn-manual-save" onclick="manualSave()"
+              class="flex-1 sm:flex-initial px-3 sm:px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer"
+              title="រក្សាទុកទិន្នន័យ (Ctrl + S)">
+              <i class="fa-solid fa-floppy-disk text-xs sm:text-sm"></i>
+              <span>រក្សាទុក</span>
+            </button>
+
+            <button id="btn-add-table"
+              class="flex-1 sm:flex-initial px-3 sm:px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-plus text-xs sm:text-sm"></i>
+              <span>បន្ថែមជួរថ្មី</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ៤. ផ្ទាំង STATS CARDS & TOOLBAR សម្រាប់ TAB 2 (មានប៊ូតុង + បន្ថែមវិក្កយបត្រ) -->
+      <div id="sticky-header-invoices" class="max-w-[98%] mx-auto px-2 sm:px-4 pt-2.5 pb-2.5 space-y-2 sm:space-y-2.5 hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+          <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-amber-100 flex items-center justify-between">
+            <div>
+              <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-0.5">ចំនួនវិក្កយបត្រសរុប</p>
+              <span id="inv-count-card" class="text-base sm:text-lg md:text-xl font-bold text-amber-600">0 វិក្កយបត្រ</span>
+            </div>
+            <div
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base sm:text-lg shadow-inner shrink-0">
+              <i class="fa-solid fa-receipt"></i>
+            </div>
+          </div>
+
+          <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-sm border border-rose-100 flex items-center justify-between">
+            <div>
+              <p class="text-[11px] sm:text-xs font-semibold text-slate-500 mb-0.5">ទឹកប្រាក់វិក្កយបត្រសរុប</p>
+              <div class="flex items-baseline gap-2">
+                <span id="inv-total-usd-card" class="text-base sm:text-lg md:text-xl font-bold text-rose-600">$0.00</span>
+                <span class="text-xs text-slate-400 font-medium">/</span>
+                <span id="inv-total-khr-card" class="text-xs sm:text-sm md:text-base font-bold text-rose-700">0៛</span>
+              </div>
+            </div>
+            <div
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base sm:text-lg shadow-inner shrink-0">
+              <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white px-3 sm:px-4 py-2 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between sm:justify-start gap-2">
+            <h2 class="text-xs sm:text-sm md:text-base font-bold text-slate-800 flex items-center gap-1.5 sm:gap-2">
+              <span>វិក្កយបត្រចំណាយ</span>
+              <span id="inv-selected-month-header" class="text-amber-600 text-xs sm:text-sm md:text-base font-bold"></span>
+            </h2>
+            <span id="inv-record-count"
+              class="text-[11px] sm:text-xs bg-slate-100 text-slate-600 px-2 sm:px-2.5 py-0.5 rounded-full font-medium">0 កំណត់ត្រា</span>
+          </div>
+
+          <div class="flex items-center flex-wrap sm:flex-nowrap gap-2">
+            <div class="relative flex-1 sm:flex-initial w-full sm:w-auto">
+              <i
+                class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="inv-table-search" placeholder="ស្វែងរកវិក្កយបត្រ..."
+                class="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs md:text-sm outline-none focus:border-amber-500 w-full sm:w-44 md:w-60 transition">
+            </div>
+
+            <button id="btn-manual-save-inv" onclick="manualSave()"
+              class="flex-1 sm:flex-initial px-3 sm:px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer"
+              title="រក្សាទុកទិន្នន័យ (Ctrl + S)">
+              <i class="fa-solid fa-floppy-disk text-xs sm:text-sm"></i>
+              <span>រក្សាទុក</span>
+            </button>
+
+            <!-- ប៊ូតុង + បន្ថែមវិក្កយបត្រ -->
+            <button id="btn-add-inv-row" onclick="addInvoiceRow()"
+              class="flex-1 sm:flex-initial px-3 sm:px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs md:text-sm font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-plus text-xs sm:text-sm"></i>
+              <span>បន្ថែមវិក្កយបត្រ</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== ផ្នែកតារាងទិន្នន័យ ==================== -->
+    <main class="max-w-[98%] mx-auto px-4 pt-3 pb-8">
+
+      <!-- Executive Leadership Banner -->
+      <div id="executive-banner"
+        class="mb-3 p-3 rounded-2xl bg-gradient-to-r from-blue-900 to-indigo-950 text-white shadow-md flex flex-wrap items-center justify-between gap-3 hidden">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-300 text-lg shadow-inner">
+            <i class="fa-solid fa-crown"></i>
+          </div>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold text-white tracking-wide">
+              ផ្ទាំងព័ត៌មានហិរញ្ញវត្ថុសម្រាប់ថ្នាក់ដឹកនាំ (Executive Overview)</h2>
+            <p class="text-[11px] text-blue-200">របាយការណ៍បូកសរុបចំណូល-ចំណាយ និងក្រាហ្វិកវិភាគទិន្នន័យជាក់ស្តែង</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="bg-blue-800/80 text-blue-200 px-2.5 py-1 rounded-lg border border-blue-700/60">
+            <i class="fa-solid fa-shield-halved text-amber-400 mr-1"></i> សិទ្ធិពិនិត្យមើល (Read-Only)
+          </span>
+        </div>
+      </div>
+
+      <!-- ៤. ផ្ទាំង DASHBOARD CHARTS សម្រាប់ថ្នាក់ដឹកនាំ (និន្នាការចំណូល-ចំណាយតាមខែ) -->
+      <div id="executive-charts-section" class="mb-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-4">
+
+          <!-- Header នៃ Chart ជាមួយ Currency Switcher -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <div
+                class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-base shadow-inner shrink-0">
+                <i class="fa-solid fa-chart-simple"></i>
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                  <span>ក្រាហ្វិកវិភាគចំណូល-ចំណាយ ប្រចាំឆ្នាំ</span>
+                  <span id="chart-year-label" class="text-blue-600 font-bold"></span>
+                </h3>
+                <p class="text-[11px] text-slate-400">តាមដានការកើនឡើង ឬថយចុះនៃហិរញ្ញវត្ថុតាមខែនីមួយៗ</p>
+              </div>
+            </div>
+
+            <!-- Currency Switcher ($ vs ៛) & Toggle Collapse -->
+            <div class="flex items-center gap-2">
+              <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs">
+                <button id="btn-chart-usd" onclick="switchChartCurrency('USD')"
+                  class="px-2.5 py-1 rounded-lg font-bold text-xs bg-white text-blue-700 shadow-sm transition cursor-pointer">
+                  $ USD
+                </button>
+                <button id="btn-chart-khr" onclick="switchChartCurrency('KHR')"
+                  class="px-2.5 py-1 rounded-lg font-bold text-xs text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                  ៛ KHR
+                </button>
+              </div>
+              <button id="btn-toggle-charts" onclick="toggleChartsVisibility()"
+                class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                title="បិទ/បើក ក្រាហ្វិក">
+                <i id="chart-toggle-icon" class="fa-solid fa-chevron-up text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Grids for 2 Charts -->
+          <div id="chart-canvas-container" class="grid grid-cols-1 lg:grid-cols-3 gap-4 transition-all duration-300">
+            <!-- Main Monthly Comparison Chart (Bar & Line Combo) -->
+            <div class="lg:col-span-2 bg-slate-50/70 p-3 sm:p-4 rounded-xl border border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700">ប្រៀបធៀបចំណូល vs ចំណាយ (១២ ខែ)</span>
+                <div class="flex items-center gap-3 text-[11px] text-slate-500 font-medium">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    ចំណូល</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                    ចំណាយ</span>
+                </div>
+              </div>
+              <div class="relative h-64 sm:h-72 w-full">
+                <canvas id="monthly-trends-chart"></canvas>
+              </div>
+            </div>
+
+            <!-- Summary Doughnut Ratio Chart -->
+            <div class="bg-slate-50/70 p-3 sm:p-4 rounded-xl border border-slate-100 flex flex-col justify-between">
+              <div class="mb-1">
+                <span class="text-xs font-bold text-slate-700">សមាមាត្រហិរញ្ញវត្ថុសរុប</span>
+                <p class="text-[10px] text-slate-400">ចំណូលធៀបនឹងចំណាយពេញមួយឆ្នាំ</p>
+              </div>
+              <div class="relative h-48 sm:h-56 w-full flex items-center justify-center my-auto">
+                <canvas id="summary-doughnut-chart"></canvas>
+              </div>
+              <div class="pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-center text-xs">
+                <div class="bg-white p-2 rounded-lg border border-slate-100 shadow-2xs">
+                  <span class="text-[10px] text-slate-500 block">អត្រាចំណាយ</span>
+                  <span id="chart-exp-ratio" class="font-bold text-rose-600 text-xs">0%</span>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-100 shadow-2xs">
+                  <span class="text-[10px] text-slate-500 block">អត្រាសន្សំ</span>
+                  <span id="chart-save-ratio" class="font-bold text-emerald-600 text-xs">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 1: បញ្ជីចំណូល-ចំណាយ -->
+      <section id="tab-content-ledger">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" id="pdf-report-content">
+
+          <!-- HEADER ផ្លូវការសម្រាប់ PDF -->
+          <div class="hidden pdf-only px-4 pt-4 pb-2">
+            <div class="flex justify-between items-start">
+              <div class="text-center pt-5 leading-relaxed">
+                <p class="text-[14px] font-bold text-slate-900 font-moul">បណ្ឌិត្យសភានគរបាលកម្ពុជា</p>
+                <p class="text-[11px] text-slate-700 tracking-widest mt-0.5">※ • ※ • ※</p>
+              </div>
+              <div class="text-center leading-relaxed">
+                <p class="text-[14.5px] font-bold text-slate-900 font-moul">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                <p class="text-[13.5px] font-bold text-slate-800 font-moul mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                <p class="text-[11px] text-slate-700 tracking-widest mt-0.5">~ ❖ ~</p>
+              </div>
+            </div>
+
+            <div class="text-center mt-2.5 mb-2.5">
+              <h2 id="pdf-report-title" class="text-[15.5px] font-bold text-slate-900 leading-normal">
+                របាយការណ៍បូកសរុបចំណូល-ចំណាយ ប្រចាំខែ
+              </h2>
+            </div>
+          </div>
+
+          <!-- Mobile Scroll Indicator Hint -->
+          <div class="flex md:hidden items-center justify-between text-[11px] text-slate-500 px-3 py-1.5 bg-blue-50/80 border-b border-blue-100">
+            <span class="flex items-center gap-1.5 text-blue-700 font-medium">
+              <i class="fa-solid fa-arrows-left-right text-xs"></i>
+              <span>អូសតារាងទៅឆ្វេង-ស្តាំ ដើម្បីពិនិត្យ ឬបំពេញទិន្នន័យ</span>
+            </span>
+            <span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-bold">តារាងទិន្នន័យ</span>
+          </div>
+
+          <!-- តារាងចំណូល-ចំណាយ -->
+          <div class="table-responsive-wrapper">
+            <table class="w-full text-left border-collapse table-fixed">
+              <thead>
+                <tr class="bg-slate-900 text-white text-[12.5px] font-bold">
+                  <th class="py-2 px-1 text-center w-[5%] border-r border-slate-700 col-idx">លេខរៀង</th>
+                  <th class="py-2 px-1 text-center w-[12%] border-r border-slate-700 col-date">កាលបរិច្ឆេទ</th>
+                  <th class="py-2 px-2 text-left w-[27%] border-r border-slate-700 col-label">បរិយាយ</th>
+                  <th colspan="2"
+                    class="py-1.5 px-1 text-center w-[26%] border-r border-slate-700 bg-emerald-950/60 border-b border-slate-700 col-inc">
+                    ចំនួនទឹកប្រាក់ចូល</th>
+                  <th colspan="2"
+                    class="py-1.5 px-1 text-center w-[26%] border-r border-slate-700 bg-rose-950/60 border-b border-slate-700 col-exp">
+                    ចំនួនទឹកប្រាក់ចេញ</th>
+                  <th colspan="2"
+                    class="py-1.5 px-1 text-center w-[20%] border-r border-slate-700 bg-slate-800 border-b border-slate-700 hide-pdf">
+                    សមតុល្យ</th>
+                  <th class="py-2 px-1 text-center w-[4%] action-col">សកម្មភាព</th>
+                </tr>
+                <tr class="bg-slate-800 text-slate-200 text-[11px] font-semibold">
+                  <th class="border-r border-slate-700"></th>
+                  <th class="border-r border-slate-700"></th>
+                  <th class="border-r border-slate-700"></th>
+                  <th
+                    class="py-1 px-1 text-right border-r border-slate-700 w-[12.5%] bg-emerald-900/40 text-emerald-300">
+                    ដុល្លារ ($)</th>
+                  <th
+                    class="py-1 px-1 text-right border-r border-slate-700 w-[13.5%] bg-emerald-900/40 text-emerald-300">
+                    រៀល (៛)</th>
+                  <th class="py-1 px-1 text-right border-r border-slate-700 w-[12.5%] bg-rose-900/40 text-rose-300">
+                    ដុល្លារ ($)</th>
+                  <th class="py-1 px-1 text-right border-r border-slate-700 w-[13.5%] bg-rose-900/40 text-rose-300">រៀល
+                    (៛)</th>
+                  <th
+                    class="py-1 px-1 text-right border-r border-slate-700 w-[9.5%] bg-slate-800 text-slate-300 hide-pdf">
+                    ដុល្លារ ($)</th>
+                  <th
+                    class="py-1 px-1 text-right border-r border-slate-700 w-[10.5%] bg-slate-800 text-slate-300 hide-pdf">
+                    រៀល (៛)</th>
+                  <th class="action-col"></th>
+                </tr>
+              </thead>
+              <tbody id="ledger-body" class="divide-y divide-slate-200 text-slate-800">
+                <!-- Rows Rendered dynamically -->
+              </tbody>
+              <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-bold text-[12px]">
+                <tr>
+                  <td colspan="3" class="py-2 px-3 text-right text-slate-700 font-bold border-r border-slate-300">
+                    សរុបរួម៖</td>
+                  <td id="foot-inc-usd" class="py-2 px-1 text-right text-emerald-700 border-r border-slate-300">$0.00
+                  </td>
+                  <td id="foot-inc-khr" class="py-2 px-1 text-right text-emerald-700 border-r border-slate-300">0៛</td>
+                  <td id="foot-exp-usd" class="py-2 px-1 text-right text-rose-600 border-r border-slate-300">$0.00</td>
+                  <td id="foot-exp-khr" class="py-2 px-1 text-right text-rose-600 border-r border-slate-300">0៛</td>
+                  <td id="foot-net-usd" class="py-2 px-1 text-right text-blue-700 border-r border-slate-300 hide-pdf">
+                    $0.00</td>
+                  <td id="foot-net-khr" class="py-2 px-1 text-right text-blue-700 border-r border-slate-300 hide-pdf">0៛
+                  </td>
+                  <td class="action-col"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: វិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ -->
+      <section id="tab-content-invoices" class="hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+          id="pdf-invoice-report-content">
+
+          <div class="hidden pdf-only px-4 pt-4 pb-2">
+            <div class="flex justify-between items-start">
+              <div class="text-center pt-5 leading-relaxed">
+                <p class="text-[14px] font-bold text-slate-900">បណ្ឌិត្យសភានគរបាលកម្ពុជា</p>
+                <p class="text-[11px] text-slate-700 tracking-widest mt-0.5">※ • ※ • ※</p>
+              </div>
+              <div class="text-center leading-relaxed">
+                <p class="text-[14.5px] font-bold text-slate-900">ព្រះរាជាណាចក្រកម្ពុជា</p>
+                <p class="text-[13.5px] font-bold text-slate-800 mt-1">ជាតិ សាសនា ព្រះមហាក្សត្រ</p>
+                <p class="text-[11px] text-slate-700 tracking-widest mt-0.5">~ ❖ ~</p>
+              </div>
+            </div>
+
+            <div class="text-center mt-2.5 mb-2.5">
+              <h2 class="text-[15.5px] font-bold text-slate-900 leading-normal">
+                របាយការណ៍វិក្កយបត្រចំណាយថ្នាក់ដឹកនាំ
+              </h2>
+            </div>
+          </div>
+
+          <!-- Mobile Scroll Indicator Hint -->
+          <div class="flex md:hidden items-center justify-between text-[11px] text-slate-500 px-3 py-1.5 bg-amber-50/80 border-b border-amber-100">
+            <span class="flex items-center gap-1.5 text-amber-800 font-medium">
+              <i class="fa-solid fa-arrows-left-right text-xs"></i>
+              <span>អូសតារាងទៅឆ្វេង-ស្តាំ ដើម្បីពិនិត្យ ឬបំពេញវិក្កយបត្រ</span>
+            </span>
+            <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">តារាងវិក្កយបត្រ</span>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="w-full text-left border-collapse table-fixed">
+              <thead>
+                <tr class="bg-slate-900 text-white text-[12.5px] font-bold">
+                  <th class="py-2 px-1 text-center w-[5%] border-r border-slate-700 col-inv-idx">លេខរៀង</th>
+                  <th class="py-2 px-1 text-center w-[12%] border-r border-slate-700 col-inv-date">កាលបរិច្ឆេទ</th>
+                  <th class="py-2 px-2 border-r border-slate-700 w-[18%] col-inv-no">លេខវិក្កយបត្រ</th>
+                  <th class="py-2 px-2 border-r border-slate-700 w-[31%] col-inv-label">បរិយាយចំណាយ</th>
+                  <th class="py-2 px-1 text-center border-r border-slate-700 w-[8%] col-inv-receipt">បង្កាន់ដៃ/រូប</th>
+                  <th
+                    class="py-2 px-1 text-right border-r border-slate-700 w-[11%] bg-rose-950/60 text-rose-300 col-inv-usd">
+                    ទឹកប្រាក់ ($)</th>
+                  <th
+                    class="py-2 px-1 text-right border-r border-slate-700 w-[11%] bg-rose-950/60 text-rose-300 col-inv-khr">
+                    ទឹកប្រាក់ (៛)</th>
+                  <th class="py-2 px-1 text-center w-[4%] action-col">សកម្មភាព</th>
+                </tr>
+              </thead>
+              <tbody id="invoice-body" class="divide-y divide-slate-200 text-slate-800">
+                <!-- Invoice Rows Rendered dynamically -->
+              </tbody>
+              <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-bold text-[12px]">
+                <tr>
+                  <td colspan="5" class="py-2 px-3 text-right text-slate-700 font-bold border-r border-slate-300">
+                    សរុបចំណាយវិក្កយបត្រ៖</td>
+                  <td id="foot-inv-usd" class="py-2 px-1 text-right text-rose-600 border-r border-slate-300">$0.00</td>
+                  <td id="foot-inv-khr" class="py-2 px-1 text-right text-rose-600 border-r border-slate-300">0៛</td>
+                  <td class="action-col"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div> <!-- ==================== END #app-container ==================== -->
+
+  <!-- ==================== MONTHLY CLOSING SUMMARY MODAL (បូកសរុបចំណាយ ២ មុខសញ្ញា) ==================== -->
+  <div id="close-month-modal"
+    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div
+      class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[92vh]">
+
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-400 flex items-center justify-center text-lg shadow-inner">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-white">បូកសរុប និងបិទបញ្ជីប្រចាំខែ</h3>
+            <p id="close-month-modal-subtitle" class="text-xs text-amber-300 font-medium">បិទបញ្ជីហិរញ្ញវត្ថុ</p>
+          </div>
+        </div>
+        <button onclick="closeCloseMonthModal()"
+          class="text-slate-400 hover:text-white transition p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+
+        <!-- Info Notification -->
+        <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+          <i class="fa-solid fa-circle-info text-amber-600 text-sm mt-0.5 shrink-0"></i>
+          <div>
+            <p class="font-bold">របាយការណ៍បូកសរុបចំណាយ ២ មុខសញ្ញា</p>
+            <p class="text-[11px] text-amber-800 mt-0.5">ប្រព័ន្ធបានបូកសរុបបញ្ចូលគ្នារវាងការចំណាយលើបញ្ជីចំណូល-ចំណាយ និងរបាយការណ៍វិក្កយបត្រថ្នាក់ដឹកនាំ ដើម្បីផ្ទៀងផ្ទាត់មុននឹងបិទបញ្ជី។</p>
+          </div>
+        </div>
+
+        <!-- 1. Total Income -->
+        <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-semibold text-emerald-800 block">ចំណូលសរុបប្រចាំខែ</span>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="close-inc-usd" class="text-base sm:text-lg font-bold text-emerald-700">$0.00</span>
+              <span class="text-xs text-emerald-400">/</span>
+              <span id="close-inc-khr" class="text-xs sm:text-sm font-bold text-emerald-800">0៛</span>
+            </div>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm shadow-inner">
+            <i class="fa-solid fa-arrow-down-left"></i>
+          </div>
+        </div>
+
+        <!-- 2. Breakdown of 2 Expense Categories -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- Expense 1: General Ledger -->
+          <div class="p-3 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-rose-800">១. ចំណាយបញ្ជីចំណូល-ចំណាយ</span>
+              <span id="close-ledger-rec-count" class="text-[10px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">0 ជួរ</span>
+            </div>
+            <div class="text-sm sm:text-base font-bold text-rose-700" id="close-exp-ledger-usd">$0.00</div>
+            <div class="text-xs sm:text-sm font-bold text-rose-800" id="close-exp-ledger-khr">0៛</div>
+          </div>
+
+          <!-- Expense 2: Invoices -->
+          <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-amber-900">២. វិក្កយបត្រថ្នាក់ដឹកនាំ</span>
+              <span id="close-inv-rec-count" class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">0 វិក្កយបត្រ</span>
+            </div>
+            <div class="text-sm sm:text-base font-bold text-amber-700" id="close-exp-inv-usd">$0.00</div>
+            <div class="text-xs sm:text-sm font-bold text-amber-800" id="close-exp-inv-khr">0៛</div>
+          </div>
+        </div>
+
+        <!-- 3. GRAND COMBINED TOTAL EXPENSES (HERO HIGHLIGHT) -->
+        <div class="p-4 rounded-2xl bg-gradient-to-tr from-slate-950 via-slate-900 to-rose-950 text-white border border-rose-500/40 shadow-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs sm:text-sm font-bold text-rose-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-calculator text-amber-400"></i>
+              <span>ចំណាយសរុបរួមទាំង ២ មុខសញ្ញា</span>
+            </span>
+            <span class="text-[10px] bg-rose-500/30 text-rose-200 border border-rose-400/40 px-2 py-0.5 rounded-full font-bold">បូកសរុបបញ្ចូលគ្នា</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
+            <div>
+              <span class="text-[10px] text-slate-400 block">សរុបចំណាយ ($)</span>
+              <span id="close-grand-exp-usd" class="text-lg sm:text-xl font-extrabold text-rose-400">$0.00</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block">សរុបចំណាយ (៛)</span>
+              <span id="close-grand-exp-khr" class="text-base sm:text-lg font-extrabold text-rose-300">0៛</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Remaining Ending Balance -->
+        <div class="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-semibold text-blue-800 block">សមតុល្យសាច់ប្រាក់នៅសល់ (ផ្ទេរទៅខែបន្ទាប់)</span>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="close-net-usd" class="text-base sm:text-lg font-bold text-blue-700">$0.00</span>
+              <span class="text-xs text-blue-400">/</span>
+              <span id="close-net-khr" class="text-xs sm:text-sm font-bold text-blue-800">0៛</span>
+            </div>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-sm shadow-inner">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+        </div>
+
+        <!-- Rollover Option Toggle -->
+        <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 cursor-pointer select-none text-xs text-slate-700">
+          <input type="checkbox" id="close-deduct-invoice-checkbox" checked onchange="updateCloseMonthModalBalances()"
+            class="w-4 h-4 mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
+          <span>កាត់កងការចំណាយវិក្កយបត្រថ្នាក់ដឹកនាំ ពីសមតុល្យសាច់ប្រាក់ផ្ទេរទៅខែបន្ទាប់</span>
+        </label>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-5 sm:px-6 py-3 border-t border-slate-200 flex items-center justify-between gap-2">
+        <button type="button" onclick="closeCloseMonthModal()"
+          class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer">
+          បោះបង់
+        </button>
+        <button type="button" onclick="confirmExecuteCloseMonth()"
+          class="px-4 sm:px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer active:scale-95">
+          <i class="fa-solid fa-lock text-xs"></i>
+          <span>បញ្ជាក់បិទបញ្ជី & ផ្ទេរទៅខែបន្ទាប់</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== SUPABASE SETTINGS & SYNC MODAL ==================== -->
+  <div id="supabase-modal"
+    class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div
+      class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden transform transition-all">
+
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow">
+            <i class="fa-solid fa-cloud text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-white">ការកំណត់ Supabase Cloud Database</h3>
+            <p class="text-xs text-slate-300">ភ្ជាប់ប្រព័ន្ធទិន្នន័យអនឡាញ Realtime</p>
+          </div>
+        </div>
+        <button onclick="closeSupabaseModal()"
+          class="text-slate-400 hover:text-white transition p-1.5 rounded-lg hover:bg-slate-800">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+
+        <!-- Status Banner -->
+        <div id="modal-status-banner"
+          class="p-3 rounded-xl border flex items-center justify-between bg-slate-50 border-slate-200">
+          <div class="flex items-center gap-2.5">
+            <span id="modal-status-dot" class="w-3 h-3 rounded-full bg-slate-400"></span>
+            <div>
+              <p id="modal-status-title" class="text-xs font-bold text-slate-800">ស្ថានភាព៖ មិនទាន់ភ្ជាប់ (ប្រើប្រាស់
+                LocalStorage)</p>
+              <p id="modal-status-subtitle" class="text-[11px] text-slate-500">ទិន្នន័យរក្សាទុកលើ Browser
+                ម៉ាស៊ីននេះប៉ុណ្ណោះ</p>
+            </div>
+          </div>
+          <span id="modal-status-pill"
+            class="text-[11px] px-2 py-0.5 rounded-full font-medium bg-slate-200 text-slate-700">Offline</span>
+        </div>
+
+        <!-- Connection Form -->
+        <div class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Supabase Project URL</span>
+              <span class="text-[11px] font-normal text-slate-400">https://xxxx.supabase.co</span>
+            </label>
+            <input type="text" id="cfg-supabase-url" placeholder="https://your-project-ref.supabase.co"
+              class="w-full px-3 py-2 text-xs md:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Supabase Anon Public API Key</span>
+              <span class="text-[11px] font-normal text-slate-400">Project Settings &gt; Data API</span>
+            </label>
+            <div class="relative">
+              <input type="password" id="cfg-supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                class="w-full px-3 py-2 text-xs md:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono pr-10" />
+              <button type="button" onclick="toggleKeyVisibility()"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs" title="បង្ហាញ/លាក់លេខកូដ">
+                <i id="eye-icon" class="fa-solid fa-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Actions -->
+        <div class="flex items-center gap-2 pt-1">
+          <button id="btn-test-connection" onclick="testSupabaseConnection()"
+            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-plug text-xs"></i>
+            <span>តេស្តការតភ្ជាប់</span>
+          </button>
+          <button onclick="saveSupabaseConfig()"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer flex-1 justify-center">
+            <i class="fa-solid fa-floppy-disk text-xs"></i>
+            <span>រក្សាទុក និងភ្ជាប់</span>
+          </button>
+          <button onclick="disconnectSupabase()"
+            class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl border border-rose-200 transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-unlink text-xs"></i>
+            <span>ផ្តាច់ការតភ្ជាប់</span>
+          </button>
+        </div>
+
+        <div id="test-conn-result" class="hidden text-xs p-2.5 rounded-xl font-medium"></div>
+
+        <!-- Sync Local Data Section -->
+        <div class="border-t border-slate-200 pt-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-slate-800">ធ្វើសមកាលកម្មទិន្នន័យ (Data Migration)</h4>
+              <p class="text-[11px] text-slate-500">រុញទិន្នន័យពី LocalStorage ឡើងទៅកាន់ Supabase Cloud</p>
+            </div>
+            <button onclick="pushLocalDataToSupabase()" id="btn-push-data"
+              class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+              <span>ផ្ទេរទៅ Supabase</span>
+            </button>
+          </div>
+          <div id="sync-result" class="hidden text-xs p-2 rounded-xl font-medium"></div>
+        </div>
+
+        <!-- Helper Guide Box -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11.5px] text-amber-900 space-y-1">
+          <div class="font-bold flex items-center gap-1.5 text-amber-900">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>មិនទាន់បានបង្កើត Table ក្នុង Supabase?</span>
+          </div>
+          <p class="text-amber-800">សូមបើក <a href="SUPABASE_SETUP.md" target="_blank"
+              class="underline font-bold text-blue-700 hover:text-blue-900">SUPABASE_SETUP.md</a> រួចចម្លងកូដក្នុង <a
+              href="supabase_schema.sql" target="_blank"
+              class="underline font-bold text-blue-700 hover:text-blue-900">supabase_schema.sql</a> ទៅ Run ក្នុង
+            Supabase SQL Editor។</p>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+        <button onclick="closeSupabaseModal()"
+          class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+          បិទ
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== RECEIPT IMAGE PREVIEW & UPLOAD MODAL ==================== -->
+  <div id="receipt-modal"
+    class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div
+      class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow">
+            <i class="fa-solid fa-receipt text-sm"></i>
+          </div>
+          <div>
+            <h3 id="receipt-modal-title" class="font-bold text-sm sm:text-base text-white">រូបភាពវិក្កយបត្រ / បង្កាន់ដៃ
+            </h3>
+            <p id="receipt-modal-subtitle" class="text-[11px] text-slate-300">ពិនិត្យផ្ទៀងផ្ទាត់ភស្តុតាងចំណាយ</p>
+          </div>
+        </div>
+        <button onclick="closeReceiptModal()"
+          class="text-slate-400 hover:text-white transition p-1.5 rounded-lg hover:bg-slate-800">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Image Container) -->
+      <div class="p-4 flex-1 overflow-auto flex flex-col items-center justify-center bg-slate-950/10 min-h-[300px]">
+
+        <!-- No Image Placeholder -->
+        <div id="receipt-empty-state" class="text-center py-10 space-y-3 hidden">
+          <div
+            class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center mx-auto text-slate-400 text-2xl">
+            <i class="fa-regular fa-image"></i>
+          </div>
+          <p class="text-sm font-medium text-slate-600">មិនទាន់មានភ្ជាប់រូបភាពវិក្កយបត្រនៅឡើយទេ</p>
+          <div class="editor-only">
+            <button onclick="triggerReceiptUpload()"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition inline-flex items-center gap-2">
+              <i class="fa-solid fa-upload"></i>
+              <span>Upload រូបភាពឥឡូវនេះ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Image Viewer Element -->
+        <div id="receipt-img-wrapper"
+          class="relative max-w-full max-h-[55vh] flex items-center justify-center overflow-hidden rounded-xl bg-slate-900/5">
+          <img id="receipt-modal-img" src="" alt="Receipt preview"
+            class="max-w-full max-h-[55vh] object-contain rounded-lg shadow-md transition-transform duration-200" />
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Toolbar -->
+      <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5">
+          <button onclick="zoomReceiptImage(0.2)"
+            class="px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 transition"
+            title="Zoom In">
+            <i class="fa-solid fa-magnifying-glass-plus"></i>
+          </button>
+          <button onclick="zoomReceiptImage(-0.2)"
+            class="px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 transition"
+            title="Zoom Out">
+            <i class="fa-solid fa-magnifying-glass-minus"></i>
+          </button>
+          <button onclick="resetReceiptZoom()"
+            class="px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 transition"
+            title="Reset Zoom">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <a id="btn-download-receipt" href="#" download="receipt.jpg" target="_blank"
+            class="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 transition inline-flex items-center gap-1.5">
+            <i class="fa-solid fa-download"></i>
+            <span class="hidden sm:inline">ទាញយក</span>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <div class="editor-only flex items-center gap-2">
+            <button id="btn-replace-receipt" onclick="triggerReceiptUpload()"
+              class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-upload"></i>
+              <span>ប្តូររូបភាព</span>
+            </button>
+            <button id="btn-delete-receipt" onclick="deleteCurrentReceipt()"
+              class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold rounded-xl transition flex items-center gap-1.5">
+              <i class="fa-solid fa-trash-can"></i>
+              <span>លុប</span>
+            </button>
+          </div>
+          <button onclick="closeReceiptModal()"
+            class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+            បិទ
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Hidden File Input for Receipt Upload -->
+  <input type="file" id="receipt-file-input" accept="image/*" class="hidden"
+    onchange="handleReceiptFileSelect(event)" />
+
+  <!-- ==================== USER AUTH & ROLE SWITCHER MODAL ==================== -->
+  <div id="auth-modal"
+    class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div
+      class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden transform transition-all">
+
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <img src="logo.png" alt="Logo"
+            class="w-9 h-9 object-contain rounded-full shadow border border-amber-400/40 shrink-0">
+          <div>
+            <h3 class="font-bold text-base text-white">ប្រព័ន្ធកំណត់សិទ្ធិ និងគណនី</h3>
+            <p class="text-xs text-slate-300">Role-Based Access Control</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()"
+          class="text-slate-400 hover:text-white transition p-1.5 rounded-lg hover:bg-slate-800">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5">
+
+        <!-- Current Role Banner -->
+        <div class="p-3.5 rounded-2xl border bg-slate-50 border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div id="modal-role-badge-icon"
+              class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-user-pen"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-500 font-medium">សិទ្ធិប្រើប្រាស់បច្ចុប្បន្ន</p>
+              <p id="modal-current-role-title" class="text-sm font-bold text-slate-800">អ្នកកត់ត្រាហិរញ្ញវត្ថុ (Editor)
+              </p>
+            </div>
+          </div>
+          <span id="modal-role-pill"
+            class="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800">Full Access</span>
+        </div>
+
+        <!-- Quick Role Switcher -->
+        <div class="space-y-2.5">
+          <label class="block text-xs font-bold text-slate-700">ជ្រើសរើសសិទ្ធិប្រើប្រាស់ (Quick Switch)៖</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+
+            <!-- Viewer Button -->
+            <button onclick="switchRole('viewer')" id="btn-role-viewer"
+              class="p-3 rounded-xl border border-slate-300 hover:border-blue-500 hover:bg-blue-50/50 transition text-left space-y-1 cursor-pointer">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-eye text-blue-600"></i> ថ្នាក់ដឹកនាំ
+                </span>
+                <span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-semibold">Viewer</span>
+              </div>
+              <p class="text-[11px] text-slate-500">មើលរបាយការណ៍ ពិនិត្យវិក្កយបត្រ Export PDF (បិទការកែប្រែ)</p>
+            </button>
+
+            <!-- Editor Button -->
+            <button onclick="switchRole('editor')" id="btn-role-editor"
+              class="p-3 rounded-xl border-2 border-emerald-500 bg-emerald-50/50 transition text-left space-y-1 cursor-pointer">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-pen text-emerald-600"></i> អ្នកកត់ត្រា
+                </span>
+                <span
+                  class="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded font-semibold">Editor</span>
+              </div>
+              <p class="text-[11px] text-slate-500">បញ្ចូល កែប្រែ លុប និង Upload រូបភាពវិក្កយបត្រ (ពេញសិទ្ធិ)</p>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Security PIN Settings -->
+        <div class="border-t border-slate-200 pt-4 space-y-3">
+          <label class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-key text-amber-500"></i>
+            <span>កំណត់លេខកូដសម្ងាត់ PIN (Security PINs)៖</span>
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="space-y-1">
+              <label class="text-[11px] text-slate-500 font-medium">PIN ថ្នាក់ដឹកនាំ (Viewer):</label>
+              <input type="text" id="setting-pin-viewer" placeholder="8888"
+                class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
+            </div>
+            <div class="space-y-1">
+              <label class="text-[11px] text-slate-500 font-medium">PIN អ្នកកត់ត្រា (Editor):</label>
+              <input type="text" id="setting-pin-editor" placeholder="123456"
+                class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono" />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button onclick="savePinSettings()"
+              class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl shadow transition">
+              <i class="fa-solid fa-check mr-1 text-emerald-400"></i> រក្សាទុក PIN
+            </button>
+          </div>
+        </div>
+
+        <!-- Optional Supabase Auth Form -->
+        <div class="border-t border-slate-200 pt-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-slate-700">ចូលគណនី Supabase Auth (ជម្រើស)</label>
+            <span id="auth-logged-in-email" class="text-[11px] text-emerald-600 font-semibold hidden"></span>
+          </div>
+
+          <div id="auth-login-fields" class="space-y-2.5">
+            <input type="email" id="auth-email" placeholder="អ៊ីមែល (Email)..."
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 font-sans" />
+            <input type="password" id="auth-password" placeholder="លេខសម្ងាត់ (Password)..."
+              class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 font-sans" />
+            <div class="flex gap-2 pt-1">
+              <button onclick="handleSupabaseSignIn()"
+                class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-right-to-bracket text-xs"></i>
+                <span>Sign In</span>
+              </button>
+              <button onclick="handleSupabaseSignUp()"
+                class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition cursor-pointer">
+                Sign Up
+              </button>
+            </div>
+            <div id="auth-message" class="hidden text-xs p-2 rounded-xl font-medium"></div>
+          </div>
+
+          <div id="auth-logout-wrapper" class="hidden">
+            <button onclick="handleSupabaseSignOut()"
+              class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-right-from-bracket text-xs"></i>
+              <span>ចាកចេញពីគណនី (Sign Out)</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
+        <button onclick="handleAppLogout()"
+          class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>ចាកចេញពីប្រព័ន្ធ (Logout)</span>
+        </button>
+        <button onclick="closeAuthModal()"
+          class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+          រួចរាល់
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Floating Scroll-to-Top Button for Mobile/Desktop -->
+  <button id="btn-scroll-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+    class="fixed bottom-5 right-5 z-40 w-11 h-11 rounded-full bg-slate-900/90 hover:bg-slate-800 text-amber-400 border border-slate-700 shadow-2xl items-center justify-center text-sm transition-all duration-300 opacity-0 pointer-events-none active:scale-95 cursor-pointer hidden md:flex"
+    title="ឡើងទៅលើវិញ">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <script src="supabase-config.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>

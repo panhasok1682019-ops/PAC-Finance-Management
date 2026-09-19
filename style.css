@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap');
+
+/* កំណត់ Font តែមួយ Kantumruy Pro សម្រាប់គ្រប់ធាតុទាំងអស់ */
+body, input, button, select, textarea, table, h1, h2, h3, p, span, td, th {
+  font-family: 'Kantumruy Pro', sans-serif !important;
+}
+
+.font-moul {
+  font-family: 'Moul', cursive, 'Kantumruy Pro', sans-serif !important;
+}
+
+/* ==================== ច្បាប់ការពារ FONTAWESOME ICONS មិនឱ្យបាត់ ==================== */
+.fa, .fas, .far, .fal, .fad, .fab, .fa-solid, .fa-regular {
+  font-family: "Font Awesome 6 Free", "FontAwesome" !important;
+  font-style: normal;
+  display: inline-block;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==================== កំណត់កម្ពស់ជួរដេកស្មើគ្នាលើ WEB VIEW ==================== */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-width: 900px;
+}
+
+table tbody tr {
+  height: 36px !important;
+}
+
+table tbody td {
+  height: 36px !important;
+  vertical-align: middle !important;
+  padding: 2px 4px !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+.cell-input {
+  height: 28px !important;
+  line-height: 28px !important;
+  vertical-align: middle !important;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 4px;
+  box-sizing: border-box !important;
+  transition: all 0.15s ease-in-out;
+}
+
+.cell-input:focus {
+  border-color: #3b82f6 !important;
+  background-color: #ffffff !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* ==================== ការកំណត់សម្រាប់ EXPORT PDF (FULL WIDTH 100%) ==================== */
+.pdf-rendering {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-color: #ffffff !important;
+  box-sizing: border-box !important;
+}
+
+.pdf-rendering .table-responsive-wrapper {
+  overflow: visible !important;
+  width: 100% !important;
+}
+
+.pdf-rendering,
+.pdf-rendering * {
+  font-family: 'Kantumruy Pro', sans-serif !important;
+  letter-spacing: normal !important;
+  word-spacing: normal !important;
+  font-variant-ligatures: normal !important;
+  text-rendering: optimizeLegibility !important;
+  box-sizing: border-box !important;
+}
+
+.pdf-rendering table {
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 0 !important;
+}
+
+/* លាក់ Column សមតុល្យ និង Action ពេល Export PDF */
+.pdf-rendering .hide-pdf,
+.pdf-rendering .action-col {
+  display: none !important;
+}
+
+/* TAB 1: បែងចែកភាគរយ Column ទាំង ៥ */
+.pdf-rendering th.col-idx,   .pdf-rendering td.col-idx   { width: 5% !important; }
+.pdf-rendering th.col-date,  .pdf-rendering td.col-date  { width: 12% !important; }
+.pdf-rendering th.col-label, .pdf-rendering td.col-label { width: 27% !important; }
+.pdf-rendering th.col-inc,   .pdf-rendering td.col-inc   { width: 28% !important; }
+.pdf-rendering th.col-exp,   .pdf-rendering td.col-exp   { width: 28% !important; }
+
+/* TAB 2: បែងចែកភាគរយ Columns វិក្កយបត្រ (ក្រោយលុបឈ្មោះហាង/ក្រុមហ៊ុន) */
+.pdf-rendering th.col-inv-idx,   .pdf-rendering td.col-inv-idx   { width: 6% !important; }
+.pdf-rendering th.col-inv-date,  .pdf-rendering td.col-inv-date  { width: 14% !important; }
+.pdf-rendering th.col-inv-no,    .pdf-rendering td.col-inv-no    { width: 20% !important; }
+.pdf-rendering th.col-inv-label, .pdf-rendering td.col-inv-label { width: 36% !important; }
+.pdf-rendering th.col-inv-usd,   .pdf-rendering td.col-inv-usd   { width: 12% !important; }
+.pdf-rendering th.col-inv-khr,   .pdf-rendering td.col-inv-khr   { width: 12% !important; }
+
+.pdf-rendering tr {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  height: 26px !important;
+  max-height: 26px !important;
+}
+
+.pdf-rendering thead {
+  display: table-header-group !important;
+}
+
+.pdf-rendering tfoot {
+  display: table-footer-group !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.pdf-rendering th,
+.pdf-rendering td {
+  height: 26px !important;
+  padding: 3px 4px !important;
+  line-height: 1.45 !important;
+  vertical-align: middle !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  font-size: 11px !important;
+}
+
+.pdf-rendering .pdf-only {
+  display: block !important;
+}
+
+.pdf-rendering span {
+  display: block !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  line-height: 22px !important;
+  font-size: 11px !important;
+}
+
+#pdf-report-title,
+#pdf-invoice-report-content h2 {
+  font-family: 'Kantumruy Pro', sans-serif !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+/* ==================== LEADERSHIP / EXECUTIVE VIEWER MODE STYLING ==================== */
+body.role-viewer .cell-input[disabled] {
+  background-color: transparent !important;
+  color: #0f172a !important;
+  border-color: transparent !important;
+  user-select: text;
+  cursor: default !important;
+  box-shadow: none !important;
+  font-weight: 500;
+}
+
+body.role-viewer .cell-input[disabled]:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* ==================== សម្រួលការបង្ហាញនៅលើទូរសព្ទដៃ (PHONE / MOBILE VIEW) ==================== */
+@media (max-width: 768px) {
+  /* មិនរក្សាផ្ទាំងណាមួយនៅមួយកន្លែងឡើយ (NO FIXED / STICKY PANELS ON PHONE) */
+  #top-sticky-wrapper,
+  .sticky {
+    position: static !important;
+    top: auto !important;
+    box-shadow: none !important;
+  }
+
+  /* ឱ្យអេក្រង់ទូរសព្ទអាច Scroll ពីលើចុះក្រោមដោយរលូន គ្មានអ្វីរារាំង */
+  html, body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    height: auto !important;
+    min-height: 100vh;
+  }
+
+  #app-container {
+    overflow-y: visible !important;
+    min-height: 100vh;
+  }
+
+  /* សម្រួល Tabs លើទូរសព្ទឱ្យរៀបជួរស្រួលចុច */
+  #main-nav-tabs {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  #main-nav-tabs button {
+    flex: 1 1 50% !important;
+    justify-content: center !important;
+    padding: 0.55rem 0.35rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* សម្រួល Graph Chart Canvas */
+  #chart-canvas-container {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* សម្រួល Table Wrapper ឱ្យ Scroll ឆ្វេងស្តាំបានរលូន */
+  .table-responsive-wrapper {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto !important;
+    border-radius: 0.75rem;
+    scrollbar-width: thin;
+  }
+  
+  table {
+    min-width: 760px !important;
+  }
+
+  /* សម្រួលកម្ពស់ជួរដេក និង Cell Input ពេលបំពេញលើទូរសព្ទ */
+  .cell-input {
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 13px !important;
+  }
+
+  /* Floating Scroll-to-Top Button */
+  #btn-scroll-top {
+    display: flex !important;
+  }
+}
+
+/* ==================== LOGIN PORTAL & KEYPAD STYLES ==================== */
+#login-portal {
+  background: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 50%, #020617 100%);
+}
+
+.login-glass-card {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.keypad-btn {
+  height: 48px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  color: #f8fafc;
+  transition: all 0.1s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keypad-btn:active {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: #f59e0b;
+  transform: scale(0.95);
+}
+
+.role-tab-active {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border: 1.5px solid #f59e0b !important;
+  box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.2);
+}
+
+.role-tab-inactive {
+  background: transparent !important;
+  border: 1.5px solid transparent !important;
+  opacity: 0.7;
+}
+
+.role-tab-inactive:hover {
+  opacity: 1;
+  background: rgba(30, 41, 59, 0.4) !important;
+}
