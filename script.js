@@ -221,9 +221,6 @@ function handleTableEnterNavigation(e) {
 }
 
 function switchTab(tabName) {
-  if (currentUserRole === 'viewer' && tabName === 'invoices') {
-    return;
-  }
   currentActiveTab = tabName;
   const ledgerContent = document.getElementById('tab-content-ledger');
   const invoiceContent = document.getElementById('tab-content-invoices');
@@ -1906,11 +1903,6 @@ function applyRolePermissions() {
   if (execBanner) {
     if (isViewer) execBanner.classList.remove('hidden');
     else execBanner.classList.add('hidden');
-  }
-
-  // Ensure Viewer is on the Ledger tab
-  if (isViewer && currentActiveTab !== 'ledger') {
-    switchTab('ledger');
   }
 
   // Ensure auth-modal is closed if viewer
