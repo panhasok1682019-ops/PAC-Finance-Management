@@ -12,19 +12,9 @@ function formatKhmerMonthYear(monthStr) {
   return `ខែ${KHMER_MONTHS[month] || month} ឆ្នាំ${year}`;
 }
 
-const initialLedgerData = [
-  { id: 1, date: '2026-08-01', label: 'ថវិកានៅសល់', incUsd: '469.46', incKhr: '21930400', expUsd: '', expKhr: '', isOpening: true },
-  { id: 1789534000001, date: '2026-08-01', label: 'ទិញជើងកីះបូម', incUsd: '', incKhr: '', expUsd: '', expKhr: '20000', isOpening: false },
-  { id: 1789534000002, date: '2026-08-01', label: 'ចំណាយបាយម្ហូបដល់ក្រុមការងារធ្វើម៉ាស៊ីនហាក់ប្រាណ', incUsd: '', incKhr: '', expUsd: '', expKhr: '110000', isOpening: false },
-  { id: 1789534000003, date: '2026-08-01', label: 'ចំណាយបាយម្ហូបដល់ក្រុមការងារជួយដឹកទូរទស្សន៍', incUsd: '', incKhr: '', expUsd: '', expKhr: '50000', isOpening: false },
-  { id: 1789534000004, date: '2026-08-01', label: 'ប្រាក់ខែបុគ្គលិកក្រុមបាងបរក(ខែកក្កដា)', incUsd: '', incKhr: '', expUsd: '', expKhr: '15080000', isOpening: false },
-  { id: 1789534000005, date: '2026-08-01', label: 'ប្រាក់ខែអ្នកឌីហ្សាញ', incUsd: '', incKhr: '', expUsd: '', expKhr: '2000000', isOpening: false }
-];
-
-// TAB 2 Data (លុប Vendor ចេញ)
-const initialInvoiceData = [
-  { id: 1, date: '2026-08-01', invNo: 'INV-001', label: 'ថ្លៃអាហារទទួលភ្ញៀវប្រតិភូ', amountUsd: '120', amountKhr: '', receiptUrl: '' }
-];
+// Initial Clean State (ទិន្នន័យទទេសម្រាប់ចាប់ផ្តើមបញ្ចូលថ្មី)
+const initialLedgerData = [];
+const initialInvoiceData = [];
 
 let currentActiveTab = 'ledger';
 let ledgerData = JSON.parse(localStorage.getItem('pac_ledger_data')) || initialLedgerData;
@@ -2884,6 +2874,52 @@ async function savePinSettings() {
       console.warn('Sync PIN error:', err);
     }
   }
+}
+
+// Function to completely clear all system data (LocalStorage & Supabase)
+async function clearAllSystemData() {
+  if (currentUserRole === 'viewer') {
+    alert('សិទ្ធិថ្នាក់ដឹកនាំ (Viewer) មិនអាចលុបទិន្នន័យបានឡើយ!');
+    return;
+  }
+
+  const confirmed = confirm('តើអ្នកពិតជាចង់លុបទិន្នន័យទាំងអស់ (ទាំងក្នុងកុំព្យូទ័រ និង Supabase) មែនទេ?\n\nសកម្មភាពនេះនឹងសម្អាតរាល់ទិន្នន័យចំណូល-ចំណាយ និងវិក្កយបត្រចាស់ទាំងអស់ ដើម្បីឱ្យអ្នកចាប់ផ្តើមបញ្ចូលឡើងវិញពីដើម។');
+  if (!confirmed) return;
+
+  const doubleCheck = confirm('សូមបញ្ជាក់ម្តងទៀត៖ តើអ្នកប្រាកដ ១០០% ទេ? ទិន្នន័យទាំងអស់នឹងត្រូវលុបចោលជាអចិន្ត្រៃយ៍!');
+  if (!doubleCheck) return;
+
+  // Clear memory arrays
+  ledgerData = [];
+  invoiceData = [];
+
+  // Clear LocalStorage data
+  localStorage.removeItem('pac_ledger_data');
+  localStorage.removeItem('pac_invoice_data');
+
+  // Clear Supabase database if connected
+  if (isSupabaseConnected && supabaseClient) {
+    try {
+      showSaveToast('កំពុងលុបទិន្នន័យពី Supabase Cloud...');
+      const [lRes, iRes] = await Promise.all([
+        supabaseClient.from('pac_ledger').delete().neq('id', 0),
+        supabaseClient.from('pac_invoices').delete().neq('id', 0)
+      ]);
+      if (lRes.error) console.warn('Clear pac_ledger error:', lRes.error);
+      if (iRes.error) console.warn('Clear pac_invoices error:', iRes.error);
+    } catch (err) {
+      console.error('Error clearing Supabase:', err);
+    }
+  }
+
+  renderTable();
+  renderInvoiceTable();
+  if (typeof updateFinancialCharts === 'function') updateFinancialCharts();
+
+  if (typeof closeAuthModal === 'function') closeAuthModal();
+  if (typeof closeSupabaseModal === 'function') closeSupabaseModal();
+
+  alert('បានលុបទិន្នន័យទាំងអស់រួចរាល់! អ្នកអាចចាប់ផ្តើមបញ្ចូលទិន្នន័យថ្មីបានហើយ។');
 }
 
 function openAuthModal() {

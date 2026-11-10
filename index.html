@@ -21,6 +21,17 @@
   <!-- Chart.js Library -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <!-- Mobile App / PWA Capabilities -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PAC Finance">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon-precomposed" href="apple-touch-icon-precomposed.png">
+
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -1457,6 +1468,25 @@
             </button>
           </div>
 
+        </div>
+
+        <!-- Danger Zone: Reset / Clear All Data -->
+        <div class="border-t border-rose-200 pt-4 space-y-2">
+          <label class="block text-xs font-bold text-rose-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
+            <span>សម្អាត ឬលុបទិន្នន័យទាំងអស់ (Reset All Data)៖</span>
+          </label>
+          <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="text-[11.5px] text-rose-800">
+              <p class="font-bold">លុបកំណត់ត្រាចំណូល-ចំណាយ និងវិក្កយបត្រទាំងអស់</p>
+              <p class="text-[10.5px] text-rose-600">សម្អាតទិន្នន័យចាស់ទាំងស្រុង ដើម្បីចាប់ផ្តើមបញ្ចូលថ្មីពីដើម។</p>
+            </div>
+            <button type="button" onclick="clearAllSystemData()"
+              class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+              <span>លុបទិន្នន័យទាំងអស់</span>
+            </button>
+          </div>
         </div>
 
       </div>

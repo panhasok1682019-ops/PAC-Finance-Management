@@ -1,0 +1,25 @@
+{
+  "name": "ប្រព័ន្ធគ្រប់គ្រងការងារហិរញ្ញវត្ថុ - បណ្ឌិត្យសភានគរបាលកម្ពុជា",
+  "short_name": "PAC Finance",
+  "description": "ប្រព័ន្ធគ្រប់គ្រងការងារហិរញ្ញវត្ថុ និងវិក្កយបត្រ បណ្ឌិត្យសភានគរបាលកម្ពុជា",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

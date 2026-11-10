@@ -94,14 +94,10 @@ DROP POLICY IF EXISTS "Public delete for pac_receipts" ON storage.objects;
 CREATE POLICY "Public delete for pac_receipts" ON storage.objects
     FOR DELETE USING (bucket_id = 'pac_receipts');
 
--- ៨. បញ្ចូលទិន្នន័យគំរូដំបូង (ប្រសិនបើតារាងនៅទំនេរ)
-INSERT INTO public.pac_ledger (date, label, inc_usd, inc_khr, exp_usd, exp_khr, is_opening)
-SELECT '2026-08-01', 'ថវិកានៅសល់', 0, 20000000, 0, 0, false
-WHERE NOT EXISTS (SELECT 1 FROM public.pac_ledger LIMIT 1);
-
-INSERT INTO public.pac_invoices (date, inv_no, label, amount_usd, amount_khr)
-SELECT '2026-08-01', 'INV-001', 'ថ្លៃអាហារទទួលភ្ញៀវប្រតិភូ', 120, 0
-WHERE NOT EXISTS (SELECT 1 FROM public.pac_invoices LIMIT 1);
+-- ៨. តារាងត្រូវបានបង្កើតឡើងដោយទទេស្អាត (Clean Tables) ត្រៀមសម្រាប់ការបញ្ចូលទិន្នន័យជាក់ស្តែង
+-- ប្រសិនបើអ្នកមានទិន្នន័យចាស់ក្នុង Supabase ហើយចង់លុបសម្អាតចេញទាំងអស់ សូម Run បន្ទាត់ខាងក្រោម៖
+-- TRUNCATE TABLE public.pac_ledger RESTART IDENTITY;
+-- TRUNCATE TABLE public.pac_invoices RESTART IDENTITY;
 
 -- ៩. បង្កើត Table pac_settings សម្រាប់ Sync លេខកូដ PIN និងការកំណត់ផ្សេងៗឆ្លង Device (Computer & Phone)
 CREATE TABLE IF NOT EXISTS public.pac_settings (
