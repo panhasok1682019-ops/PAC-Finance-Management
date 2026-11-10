@@ -52,6 +52,26 @@ let supabaseClient = null;
 let isSupabaseConnected = false;
 let realtimeSubscription = null;
 const syncDebounceTimers = {};
+let supabaseColumns = {
+  ledgerHasReceipt: false,
+  invoiceHasReceipt: false
+};
+
+async function detectSupabaseSchemaFeatures() {
+  if (!supabaseClient) return;
+  try {
+    const { error: lErr } = await supabaseClient.from('pac_ledger').select('receipt_url').limit(1);
+    supabaseColumns.ledgerHasReceipt = !lErr;
+  } catch (e) {
+    supabaseColumns.ledgerHasReceipt = false;
+  }
+  try {
+    const { error: iErr } = await supabaseClient.from('pac_invoices').select('receipt_url').limit(1);
+    supabaseColumns.invoiceHasReceipt = !iErr;
+  } catch (e) {
+    supabaseColumns.invoiceHasReceipt = false;
+  }
+}
 
 function getSelectedMonthStr() {
   const mSelect = document.getElementById('month-select');
@@ -163,24 +183,46 @@ async function manualSave() {
   localStorage.setItem('pac_ledger_data', JSON.stringify(ledgerData));
   localStorage.setItem('pac_invoice_data', JSON.stringify(invoiceData));
 
+  let cloudError = null;
   if (isSupabaseConnected && supabaseClient) {
     try {
       const ledgerPayloads = ledgerData.map(mapLedgerToSupabase);
       const invoicePayloads = invoiceData.map(mapInvoiceToSupabase);
       if (ledgerPayloads.length > 0) {
-        await supabaseClient.from('pac_ledger').upsert(ledgerPayloads, { onConflict: 'id' });
+        let { error: lErr } = await supabaseClient.from('pac_ledger').upsert(ledgerPayloads, { onConflict: 'id' });
+        if (lErr && lErr.message && lErr.message.includes('receipt_url')) {
+          supabaseColumns.ledgerHasReceipt = false;
+          const retryPayloads = ledgerData.map(mapLedgerToSupabase);
+          const res = await supabaseClient.from('pac_ledger').upsert(retryPayloads, { onConflict: 'id' });
+          lErr = res.error;
+        }
+        if (lErr) cloudError = lErr;
       }
-      if (invoicePayloads.length > 0) {
-        await supabaseClient.from('pac_invoices').upsert(invoicePayloads, { onConflict: 'id' });
+      if (invoicePayloads.length > 0 && !cloudError) {
+        let { error: iErr } = await supabaseClient.from('pac_invoices').upsert(invoicePayloads, { onConflict: 'id' });
+        if (iErr && iErr.message && iErr.message.includes('receipt_url')) {
+          supabaseColumns.invoiceHasReceipt = false;
+          const retryPayloads = invoiceData.map(mapInvoiceToSupabase);
+          const res = await supabaseClient.from('pac_invoices').upsert(retryPayloads, { onConflict: 'id' });
+          iErr = res.error;
+        }
+        if (iErr) cloudError = iErr;
       }
     } catch (err) {
       console.warn('Manual save to Supabase warning:', err);
+      cloudError = err;
     }
   }
-  showSaveToast();
+
+  if (cloudError) {
+    console.error('Manual save to Supabase error:', cloudError);
+    showSaveToast('រក្សាទុកក្នុង Browser ជោគជ័យ! (Cloud មិនទាន់ចូល)', true);
+  } else {
+    showSaveToast();
+  }
 }
 
-function showSaveToast(customMsg) {
+function showSaveToast(customMsg, isWarning = false) {
   let toast = document.getElementById('save-toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -188,14 +230,22 @@ function showSaveToast(customMsg) {
     toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-50 text-sm font-semibold transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none';
     document.body.appendChild(toast);
   }
-  const cloudBadge = isSupabaseConnected
-    ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">Cloud</span>'
-    : '<span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded">Local</span>';
-  toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i> <span>${customMsg || 'បានរក្សាទុកទិន្នន័យដោយជោគជ័យ!'}</span> ${cloudBadge}`;
+  let cloudBadge = '';
+  if (isWarning) {
+    cloudBadge = '<span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Local Only</span>';
+  } else {
+    cloudBadge = isSupabaseConnected
+      ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30">Cloud</span>'
+      : '<span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded">Local</span>';
+  }
+  const icon = isWarning
+    ? '<i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>'
+    : '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>';
+  toast.innerHTML = `${icon} <span>${customMsg || 'បានរក្សាទុកទិន្នន័យដោយជោគជ័យ!'}</span> ${cloudBadge}`;
   toast.classList.remove('translate-y-10', 'opacity-0');
   setTimeout(() => {
     toast.classList.add('translate-y-10', 'opacity-0');
-  }, 2200);
+  }, 2500);
 }
 
 /* ==========================================================================
@@ -1709,7 +1759,7 @@ function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</
 
 // Mappers between Local Object Model & Supabase PostgreSQL Tables
 function mapLedgerToSupabase(row) {
-  return {
+  const payload = {
     id: row.id,
     date: row.date || new Date().toISOString().slice(0, 10),
     label: row.label || '',
@@ -1718,9 +1768,12 @@ function mapLedgerToSupabase(row) {
     exp_usd: parseFloat(row.expUsd) || 0,
     exp_khr: parseFloat(row.expKhr) || 0,
     is_opening: Boolean(row.isOpening),
-    receipt_url: row.receiptUrl || '',
     updated_at: new Date().toISOString()
   };
+  if (supabaseColumns.ledgerHasReceipt) {
+    payload.receipt_url = row.receiptUrl || '';
+  }
+  return payload;
 }
 
 function mapSupabaseToLedger(row) {
@@ -1738,16 +1791,19 @@ function mapSupabaseToLedger(row) {
 }
 
 function mapInvoiceToSupabase(row) {
-  return {
+  const payload = {
     id: row.id,
     date: row.date || new Date().toISOString().slice(0, 10),
     inv_no: row.invNo || '',
     label: row.label || '',
     amount_usd: parseFloat(row.amountUsd) || 0,
     amount_khr: parseFloat(row.amountKhr) || 0,
-    receipt_url: row.receiptUrl || '',
     updated_at: new Date().toISOString()
   };
+  if (supabaseColumns.invoiceHasReceipt) {
+    payload.receipt_url = row.receiptUrl || '';
+  }
+  return payload;
 }
 
 function mapSupabaseToInvoice(row) {
@@ -1785,8 +1841,14 @@ async function syncLedgerRowToSupabase(id) {
   const row = ledgerData.find(d => d.id === id);
   if (!row) return;
   try {
-    const payload = mapLedgerToSupabase(row);
-    const { error } = await supabaseClient.from('pac_ledger').upsert(payload, { onConflict: 'id' });
+    let payload = mapLedgerToSupabase(row);
+    let { error } = await supabaseClient.from('pac_ledger').upsert(payload, { onConflict: 'id' });
+    if (error && error.message && error.message.includes('receipt_url')) {
+      supabaseColumns.ledgerHasReceipt = false;
+      payload = mapLedgerToSupabase(row);
+      const res = await supabaseClient.from('pac_ledger').upsert(payload, { onConflict: 'id' });
+      error = res.error;
+    }
     if (error) console.warn('Supabase upsert ledger error:', error.message);
   } catch (err) {
     console.error('syncLedgerRowToSupabase error:', err);
@@ -1798,8 +1860,14 @@ async function syncInvoiceRowToSupabase(id) {
   const row = invoiceData.find(d => d.id === id);
   if (!row) return;
   try {
-    const payload = mapInvoiceToSupabase(row);
-    const { error } = await supabaseClient.from('pac_invoices').upsert(payload, { onConflict: 'id' });
+    let payload = mapInvoiceToSupabase(row);
+    let { error } = await supabaseClient.from('pac_invoices').upsert(payload, { onConflict: 'id' });
+    if (error && error.message && error.message.includes('receipt_url')) {
+      supabaseColumns.invoiceHasReceipt = false;
+      payload = mapInvoiceToSupabase(row);
+      const res = await supabaseClient.from('pac_invoices').upsert(payload, { onConflict: 'id' });
+      error = res.error;
+    }
     if (error) console.warn('Supabase upsert invoice error:', error.message);
   } catch (err) {
     console.error('syncInvoiceRowToSupabase error:', err);
@@ -1828,13 +1896,33 @@ async function fetchSupabaseData() {
     let hasRemoteData = false;
 
     if (!ledgerRes.error && ledgerRes.data && ledgerRes.data.length > 0) {
-      ledgerData = ledgerRes.data.map(mapSupabaseToLedger);
+      const remoteLedger = ledgerRes.data.map(mapSupabaseToLedger);
+      const localLedger = JSON.parse(localStorage.getItem('pac_ledger_data')) || [];
+      const remoteIds = new Set(remoteLedger.map(r => r.id));
+      const unsyncedRows = localLedger.filter(r => !r.isOpening && !remoteIds.has(r.id));
+
+      if (unsyncedRows.length > 0) {
+        ledgerData = [...remoteLedger, ...unsyncedRows];
+        setTimeout(() => manualSave(), 1200);
+      } else {
+        ledgerData = remoteLedger;
+      }
       localStorage.setItem('pac_ledger_data', JSON.stringify(ledgerData));
       hasRemoteData = true;
     }
 
     if (!invoiceRes.error && invoiceRes.data && invoiceRes.data.length > 0) {
-      invoiceData = invoiceRes.data.map(mapSupabaseToInvoice);
+      const remoteInvoices = invoiceRes.data.map(mapSupabaseToInvoice);
+      const localInvoices = JSON.parse(localStorage.getItem('pac_invoice_data')) || [];
+      const remoteInvIds = new Set(remoteInvoices.map(r => r.id));
+      const unsyncedInvoices = localInvoices.filter(r => !remoteInvIds.has(r.id));
+
+      if (unsyncedInvoices.length > 0) {
+        invoiceData = [...remoteInvoices, ...unsyncedInvoices];
+        setTimeout(() => manualSave(), 1200);
+      } else {
+        invoiceData = remoteInvoices;
+      }
       localStorage.setItem('pac_invoice_data', JSON.stringify(invoiceData));
       hasRemoteData = true;
     }
@@ -2053,6 +2141,7 @@ async function initSupabase() {
     }
 
     updateSupabaseUIStatus('connected', `ភ្ជាប់ទៅ៖ ${savedUrl}`);
+    await detectSupabaseSchemaFeatures();
     await fetchSupabaseData();
     await fetchRemotePinSettings();
     subscribeToRealtime();
@@ -2208,12 +2297,22 @@ async function pushLocalDataToSupabase() {
     const invoicePayloads = invoiceData.map(mapInvoiceToSupabase);
 
     if (ledgerPayloads.length > 0) {
-      const { error: lErr } = await supabaseClient.from('pac_ledger').upsert(ledgerPayloads, { onConflict: 'id' });
+      let { error: lErr } = await supabaseClient.from('pac_ledger').upsert(ledgerPayloads, { onConflict: 'id' });
+      if (lErr && lErr.message && lErr.message.includes('receipt_url')) {
+        supabaseColumns.ledgerHasReceipt = false;
+        const res = await supabaseClient.from('pac_ledger').upsert(ledgerData.map(mapLedgerToSupabase), { onConflict: 'id' });
+        lErr = res.error;
+      }
       if (lErr) throw lErr;
     }
 
     if (invoicePayloads.length > 0) {
-      const { error: iErr } = await supabaseClient.from('pac_invoices').upsert(invoicePayloads, { onConflict: 'id' });
+      let { error: iErr } = await supabaseClient.from('pac_invoices').upsert(invoicePayloads, { onConflict: 'id' });
+      if (iErr && iErr.message && iErr.message.includes('receipt_url')) {
+        supabaseColumns.invoiceHasReceipt = false;
+        const res = await supabaseClient.from('pac_invoices').upsert(invoiceData.map(mapInvoiceToSupabase), { onConflict: 'id' });
+        iErr = res.error;
+      }
       if (iErr) throw iErr;
     }
 
